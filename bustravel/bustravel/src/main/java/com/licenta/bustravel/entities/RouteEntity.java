@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -45,5 +46,8 @@ public class RouteEntity {
 
     @OneToMany(mappedBy = "routeEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<StopEntity> intermediateLocationsList;
+
+    @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<BookingEntity> bookingList = new ArrayList<>();
 
 }

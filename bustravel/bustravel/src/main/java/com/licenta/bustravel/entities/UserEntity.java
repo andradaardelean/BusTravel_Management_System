@@ -37,6 +37,10 @@ public class UserEntity {
     @JoinColumn(name="company_name")
     private CompanyEntity companyEntity;
 
+    @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<BookingEntity> bookingList = new ArrayList<>();
+
+
     public boolean isValid(String phone, String email){
         if(phone.length() != 10)
             return false;
