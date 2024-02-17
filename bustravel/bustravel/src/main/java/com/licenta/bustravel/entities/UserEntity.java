@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,8 +30,12 @@ public class UserEntity {
     @Column(name="email", unique=true)
     private String email;
     @Column(name="usertype")
-    //@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private UserType userType;
+
+    @ManyToOne
+    @JoinColumn(name="company_name")
+    private CompanyEntity companyEntity;
 
     public boolean isValid(String phone, String email){
         if(phone.length() != 10)
