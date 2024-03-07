@@ -39,7 +39,7 @@ public class UserController {
     public @ResponseBody ResponseEntity<?> signUp(@RequestBody UserSignUpDTO userDTO){
         try{
             UserType userType = UserType.valueOf(userDTO.getUserType());
-            UserEntity newUser = new UserEntity(0,userDTO.getUsername(), userDTO.getPassword(), userDTO.getName(), userDTO.getPhone(), userDTO.getEmail(), userType);
+            UserEntity newUser = new UserEntity(0,userDTO.getUsername(), userDTO.getPassword(), userDTO.getName(), userDTO.getPhone(), userDTO.getEmail(), userType, null, null);
             userService.add(newUser);
         }catch(Exception e){
             e.printStackTrace();

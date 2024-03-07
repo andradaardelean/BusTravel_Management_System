@@ -2,12 +2,12 @@ package com.licenta.bustravel.service.implementations;
 
 
 import com.licenta.bustravel.entities.UserEntity;
-import com.licenta.bustravel.entities.enums.UserType;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.licenta.bustravel.entities.enums.UserType;
 
 import java.util.List;
 import java.util.Optional;

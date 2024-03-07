@@ -32,7 +32,7 @@ public class RouteEntity {
     @Column(name = "end_location")
     private String endLocation;
 
-    @Column(name = "avaialble_seats")
+    @Column(name = "available_seats")
     private int availableSeats;
     @Column(name = "total_seats")
     private int totalSeats;

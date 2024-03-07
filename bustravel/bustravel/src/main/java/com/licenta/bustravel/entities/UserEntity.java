@@ -34,7 +34,7 @@ public class UserEntity {
     private UserType userType;
 
     @ManyToOne
-    @JoinColumn(name="company_name")
+    @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
 
     @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
