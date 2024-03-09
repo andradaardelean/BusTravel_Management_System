@@ -81,6 +81,7 @@ public class RouteServiceImpl implements RouteService {
         }
 
         try{
+//            getAllStops().stream().filter((stopEntity -> stopEntity.getRouteEntity() == routeEntity)).toList();
             for(StopEntity stop : getAllStops()){
                 if(stop.getRouteEntity() == routeEntity){
                     stopsRepository.delete(stop);

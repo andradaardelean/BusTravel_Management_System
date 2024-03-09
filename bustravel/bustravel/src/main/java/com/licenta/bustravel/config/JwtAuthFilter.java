@@ -26,13 +26,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String username = null;
         String token = null;
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){   // extragem token-ul din header-ul de autorizare
-            token = authorizationHeader.substring(7); // iau ce e dupa Bearer ...
-            username = jwtService.extractUsername(token);   // extragem username-ul din token
+            token = authorizationHeader.substring(7);
+            username = jwtService.extractUsername(token);
         }
-        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){    // daca nu exista deja o autentificare si username-ul e valid
+        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = userInfoService.loadUserByUsername(username);
             if(jwtService.validateToken(token, userDetails)){
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()); // reprpezinta autentificarea utilizatorului
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null); // reprpezinta autentificarea utilizatorului
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autentificarea este disponibilă pentru a fi utilizată în continuarea procesării cererii.
             }
@@ -40,3 +40,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response); // permite cererii să parcurgă toate celelalte filtre configurate în aplicație.
     }
 }
+
+
