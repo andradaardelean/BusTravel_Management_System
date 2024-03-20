@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -18,15 +21,14 @@ public class StopEntity {
 
     @Column(name = "location")
     private String location;
-    @Column(name = "order")
+    @Column(name = "\"order\"")
     private int order;
-    @ManyToOne
-    @JoinColumn(name = "route_id")
-    private RouteEntity routeEntity;
 
     @Column(name = "stop")
     private String stop;
     @Column(name = "stop_order")
     private int stopOrder;
 
+    @ManyToMany(mappedBy = "stopEntities")
+    private List<RouteEntity> routeEntityList = new ArrayList<>();
 }

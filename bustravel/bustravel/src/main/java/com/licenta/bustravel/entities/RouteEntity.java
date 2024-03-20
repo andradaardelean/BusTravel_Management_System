@@ -44,10 +44,14 @@ public class RouteEntity {
     @JoinColumn(name = "company_id")
     private CompanyEntity companyEntity;
 
-    @OneToMany(mappedBy = "routeEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private List<StopEntity> intermediateLocationsList;
-
     @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<BookingEntity> bookingList = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "intermediate_routes",
+            joinColumns = @JoinColumn(name = "route_id"),
+            inverseJoinColumns = @JoinColumn(name = "stop_id"))
+    private List<StopEntity> stopEntities = new ArrayList<>();
 
 }
