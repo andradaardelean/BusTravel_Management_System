@@ -26,20 +26,6 @@ public class BustravelApplication {
 		logger.addHandler(new ConsoleHandler());
 		//adding custom handler
 		logger.addHandler(new ErrorHandler());
-
-		try {
-			//FileHandler file name with max size and number of log files limit
-			Handler fileHandler = new FileHandler("C:\\Andrada\\UBB INFO\\Licenta\\Licenta\\BusTravel_Management_System\\bustravel\\bustravel\\logging\\logger.log", 2000, 5);
-			fileHandler.setFormatter(new MyFormatter());
-			//setting custom filter for FileHandler
-			fileHandler.setFilter(new MyFilter());
-			logger.addHandler(fileHandler);
-
-			logger.log(Level.CONFIG, "App started");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	}
 
 }

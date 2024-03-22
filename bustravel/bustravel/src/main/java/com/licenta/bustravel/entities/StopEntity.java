@@ -1,16 +1,15 @@
 package com.licenta.bustravel.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "stops")
 public class StopEntity {
@@ -31,4 +30,11 @@ public class StopEntity {
 
     @ManyToMany(mappedBy = "stopEntities")
     private List<RouteEntity> routeEntityList = new ArrayList<>();
+
+    public StopEntity(String location, int order, String stop, int stopOrder) {
+        this.location = location;
+        this.order = order;
+        this.stop = stop;
+        this.stopOrder = stopOrder;
+    }
 }

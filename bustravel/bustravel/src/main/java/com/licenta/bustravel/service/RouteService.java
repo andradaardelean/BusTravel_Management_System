@@ -1,5 +1,6 @@
 package com.licenta.bustravel.service;
 
+import com.licenta.bustravel.entities.BookingEntity;
 import com.licenta.bustravel.entities.StopEntity;
 import com.licenta.bustravel.entities.RouteEntity;
 
@@ -10,6 +11,6 @@ public interface RouteService {
     void add(List<RouteEntity> routeEntity, List<StopEntity> intermediateLocations) throws Exception;
     Optional getById(int id) throws Exception;
     void modify(RouteEntity routeEntity, List<StopEntity> intermediateLocations) throws Exception;
-    void delete(RouteEntity routeEntity) throws Exception;
+    void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception;
     List<RouteEntity> getAll() throws Exception;
 }

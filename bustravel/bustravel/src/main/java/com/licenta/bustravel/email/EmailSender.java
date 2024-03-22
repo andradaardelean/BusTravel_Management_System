@@ -16,7 +16,8 @@ public class EmailSender {
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("bus.travel.test@gmail.com", "zgqb uehm kyvn qpsi");
+                //"travel.management.system2024@gmail.com", "Licentaapp2024"
+                return new PasswordAuthentication("code.crushers.test@gmail.com", "zgqb uehm kyvn qpsi");
             }
         });
         try {
@@ -24,7 +25,7 @@ public class EmailSender {
             MimeMessage message = new MimeMessage(session);
 
             // Set From: header field of the header
-            message.setFrom(new InternetAddress("bus.travel.test@gmail.com"));
+            message.setFrom(new InternetAddress("code.crushers.test@gmail.com"));
 
             // Set To: header field of the header
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));

@@ -1,5 +1,6 @@
 package com.licenta.bustravel.entities;
 
+import com.licenta.bustravel.entities.enums.RecurrenceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,5 +54,12 @@ public class RouteEntity {
             joinColumns = @JoinColumn(name = "route_id"),
             inverseJoinColumns = @JoinColumn(name = "stop_id"))
     private List<StopEntity> stopEntities = new ArrayList<>();
+
+    @Column(name = "recurrence_no")
+    private Integer reccurencyNo;
+
+    @Column(name = "recurrence_type")
+    @Enumerated(EnumType.STRING)
+    private RecurrenceType recurrenceType;
 
 }

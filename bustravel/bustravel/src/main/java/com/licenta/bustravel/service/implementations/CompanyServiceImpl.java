@@ -64,7 +64,7 @@ public class CompanyServiceImpl implements CompanyService {
         return new String(chars);
     }
     @Override
-    public void add(CompanyEntity companyEntity, String ownerName) throws Exception {
+    public void add(CompanyEntity companyEntity) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         UserEntity userCurrent = userRepository.findByUsername(username).get();
@@ -77,8 +77,9 @@ public class CompanyServiceImpl implements CompanyService {
                 String ownerEmail = companyEntity.getOwnerEmail();
                 String ownerUsername = ownerEmail.substring(0, ownerEmail.indexOf('@'));
                 String password = generatePassword();
-                UserEntity owner = new UserEntity(0,ownerUsername, password, ownerName, companyEntity.getPhone(), companyEntity.getOwnerEmail(), UserType.COMPANYEMPLOYEE, companyEntity, null);
+                UserEntity owner = new UserEntity(0,ownerUsername, password, companyEntity.getOwnerName(), companyEntity.getPhone(), companyEntity.getOwnerEmail(), UserType.COMPANYEMPLOYEE, companyEntity, null);
                 owner.setPassword(passwordEncoder.encode(password));
+                userRepository.save(owner);
                 String to = companyEntity.getOwnerEmail();
                 String subject = "New user registration";
                 String body = "Hi, \n thanks for choosing to work with us! \n Here are your credentials: " + ownerUsername +"\n password: "+ password;

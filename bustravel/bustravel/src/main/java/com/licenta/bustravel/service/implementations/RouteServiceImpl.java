@@ -1,23 +1,20 @@
 package com.licenta.bustravel.service.implementations;
 
-import com.licenta.bustravel.entities.IntermediateRoutesEntity;
-import com.licenta.bustravel.entities.StopEntity;
-import com.licenta.bustravel.entities.RouteEntity;
-import com.licenta.bustravel.entities.UserEntity;
+import com.licenta.bustravel.controller.CompanyController;
+import com.licenta.bustravel.entities.*;
+import com.licenta.bustravel.entities.enums.RecurrenceType;
 import com.licenta.bustravel.entities.enums.UserType;
-import com.licenta.bustravel.repositories.IntermediateRouteRepository;
-import com.licenta.bustravel.repositories.StopsRepository;
-import com.licenta.bustravel.repositories.RouteRepository;
-import com.licenta.bustravel.repositories.UserRepository;
+import com.licenta.bustravel.repositories.*;
 import com.licenta.bustravel.service.RouteService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +27,9 @@ public class RouteServiceImpl implements RouteService {
     StopsRepository stopsRepository;
     @Autowired
     IntermediateRouteRepository intermediateRouteRepository;
+    @Autowired
+    CompanyRepository companyRepository;
+    private static final Logger LOGGER = Logger.getLogger(CompanyController.class.getName());
 
     @Override
     public void add(List<RouteEntity> routeEntities, List<StopEntity> stops) throws Exception {
@@ -40,9 +40,21 @@ public class RouteServiceImpl implements RouteService {
                 throw new Exception("Not allowed.");
             }
         try {
-            routeRepository.saveAll(routeEntities);
+            CompanyEntity companyEntity = userCurrent.getCompanyEntity();
+            List<RouteEntity> sortedRoutes = new ArrayList<>(routeEntities);
+            sortedRoutes.forEach(routeEntity -> routeEntity.setCompanyEntity(companyEntity));
+
+            sortedRoutes = sortedRoutes.stream()
+                    .sorted(Comparator.comparing(RouteEntity::getStartDateTime))
+                    .collect(Collectors.toList());
+            routeRepository.saveAll(sortedRoutes);
             for (StopEntity stop : stops) {
-                stopsRepository.save(stop);
+                StopEntity stop1 = stopsRepository.findStop(stop.getLocation(), stop.getOrder(), stop.getStop(), stop.getStopOrder());
+                if(stop1==null){
+                    stopsRepository.save(stop);
+                }else {
+                    stop.setId(stop1.getId());
+                }
             }
             List<IntermediateRoutesEntity> intermediateRoutes = routeEntities.stream()
                     .flatMap(route -> stops.stream()
@@ -86,18 +98,57 @@ public class RouteServiceImpl implements RouteService {
         }
     }
 
+    public List<RouteEntity> getAllRoutesToDelete(RouteEntity routeEntity) throws Exception {
+        List<RouteEntity> result = new ArrayList<>();
+        LocalDateTime currentStart = routeEntity.getStartDateTime();
+        LocalDateTime currentEnd = routeEntity.getEndDateTime();
+        do {
+            RouteEntity routeEntity1 = routeRepository.findRoute(currentStart, currentEnd, routeEntity.getStartLocation(), routeEntity.getEndLocation());
+            if(routeEntity1 == null){
+                throw new Exception("Route entity does not exist!");
+            }
+            result.add(routeEntity1);
+            if (routeEntity.getRecurrenceType() == RecurrenceType.DAY) {
+                currentStart = currentStart.plusDays(routeEntity.getReccurencyNo());
+                currentEnd = currentEnd.plusDays(routeEntity.getReccurencyNo());
+            } else {
+                currentStart = currentStart.plusDays(7L * routeEntity.getReccurencyNo());
+                currentEnd = currentEnd.plusDays(7L * routeEntity.getReccurencyNo());
+            }
+
+        }while (currentEnd.isBefore((LocalDateTime.parse("2025-01-01T00:00:00"))));
+        return result;
+    }
+
     @Override
-    public void delete(RouteEntity routeEntity) throws Exception {
+    public void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         UserEntity userCurrent = userRepository.findByUsername(username).get();
         if(userCurrent.getUserType().equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
-
+        RouteEntity routeToRemove = routeRepository.findRoute(routeEntity.getStartDateTime(), routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
+        if(routeToRemove == null) {
+            throw new Exception("Route not found!");
+        }
         try{
-            // add delete stops si stergere recursiva
-            routeRepository.delete(routeEntity);
+            if(Boolean.TRUE.equals(removeAll)) {
+                if (routeToRemove.getRecurrenceType() != RecurrenceType.NONE) {
+                    List<RouteEntity> routesToDelete = getAllRoutesToDelete(routeToRemove);
+                    for(RouteEntity routeEntity1: routesToDelete) {
+                        List<IntermediateRoutesEntity> toDelete = intermediateRouteRepository.findAll().stream().filter(intermediateRoutesEntity -> intermediateRoutesEntity.getRouteId() == routeEntity1.getId()).toList();
+                        intermediateRouteRepository.deleteAll(toDelete);
+                        routeRepository.delete(routeEntity1);
+                    }
+                } else {
+                    throw new Exception("There is no recurrence for this route");
+                }
+            }else{
+                List<IntermediateRoutesEntity> toDelete = intermediateRouteRepository.findAll().stream().filter(intermediateRoutesEntity -> intermediateRoutesEntity.getRouteId() == routeToRemove.getId()).toList();
+                intermediateRouteRepository.deleteAll(toDelete);
+                routeRepository.delete(routeToRemove);
+            }
         }catch(Exception e){
             throw new Exception("Delete failed!");
         }
