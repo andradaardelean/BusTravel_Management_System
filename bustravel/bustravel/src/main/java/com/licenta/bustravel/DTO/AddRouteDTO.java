@@ -7,7 +7,7 @@ import java.util.ArrayList;
 @Data
 @AllArgsConstructor
 public class AddRouteDTO {
-    RoutesDTO routesDTO;
+    RouteDTO routesDTO;
     ArrayList<StopsDTO> stopsDTOList;
     RecurrenceDTO recurrenceDTO;
 }

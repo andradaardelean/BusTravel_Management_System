@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RemoveRoutesDTO {
-    RoutesDTO routesDTO;
+    RouteDTO routesDTO;
     Boolean removeAllRecursive;
 }

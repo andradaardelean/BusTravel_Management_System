@@ -3,11 +3,10 @@ package com.licenta.bustravel.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
-public class RoutesDTO {
+public class RouteDTO {
+    Integer id;
     String startDateTime;
     String endDateTime;
     String startLocation;
