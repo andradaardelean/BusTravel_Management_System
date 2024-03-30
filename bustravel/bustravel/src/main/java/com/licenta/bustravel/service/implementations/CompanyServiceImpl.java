@@ -30,7 +30,7 @@ public class CompanyServiceImpl implements CompanyService {
         String charLower = "abcdefghijklmnopqrstuvwxyz";
         String charUpper = charLower.toUpperCase();
         String digit = "0123456789";
-        String specialChar = "!@#$%^&*()-_=+[]{}|;:'\",.<>?";
+        String specialChar = "!@#$%&'\"";
 
         String passwordChars = charLower + charUpper + digit + specialChar;
 

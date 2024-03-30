@@ -12,5 +12,5 @@ public interface RouteService {
     void modify(RouteEntity routeEntity, List<StopEntity> intermediateLocations) throws Exception;
     void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception;
     List<RouteEntity> getAll() throws Exception;
-    List<RouteEntity> search(String startDate, String endDate, String startLocation, String endLocation, String passangersNo) throws Exception;
+    List<RouteEntity> search(String search, String startDate, String endDate, String startLocation, String endLocation, String passangersNo) throws Exception;
 }

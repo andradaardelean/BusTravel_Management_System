@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:9000", allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/routes")
 public class RouteController {
     @Autowired
@@ -131,17 +131,18 @@ public class RouteController {
 
     @GetMapping("/search")
     public @ResponseBody ResponseEntity<?> searchRoutes(@RequestHeader("Authorization") String authorizationHeader,
+                                                        @RequestParam("search") String search,
                                                         @RequestParam("startDate") String startDate,
                                                         @RequestParam("endDate") String endDate,
                                                         @RequestParam("startLocation") String startLocation,
                                                         @RequestParam("endLocation") String endLocation,
-                                                        @RequestParam("passangersNo") String passangersNo) {
+                                                        @RequestParam("passengersNo") String passangersNo) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
-            List<RouteEntity> routeEntities = routeService.search(startDate, endDate, startLocation, endLocation,
+            List<RouteEntity> routeEntities = routeService.search(search, startDate, endDate, startLocation, endLocation,
                     passangersNo);
             LOGGER.info("dupa search ");
             List<RouteDTO> result = new ArrayList<>();

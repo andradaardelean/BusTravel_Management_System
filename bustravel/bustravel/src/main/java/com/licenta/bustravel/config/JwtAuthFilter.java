@@ -43,12 +43,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autentificarea este disponibilă pentru a fi utilizată în continuarea procesării cererii.
             }
         }
-        if ("OPTIONS".equals(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            filterChain.doFilter(request, response);
-        }
-//        filterChain.doFilter(request, response); // permite cererii să parcurgă toate celelalte filtre configurate în aplicație.
+
+        filterChain.doFilter(request, response); // permite cererii să parcurgă toate celelalte filtre configurate în aplicație.
     }
 }
 

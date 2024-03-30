@@ -169,15 +169,12 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public List<RouteEntity> search(String startDate, String endDate, String startLocation, String endLocation,
+    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation, String endLocation,
                                     String passangersNo) throws Exception {
         List<RouteEntity> foundRoutes;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LOGGER.info("start date: " + startDate);
         LocalDate startdate = LocalDate.parse(startDate, dateTimeFormatter);
-        LOGGER.info("end date: " + endDate);
         if (Objects.equals(endDate, "null")) {
-            LOGGER.info("start date-ul meu: " + startDate);
             foundRoutes = routeRepository.findAll()
                     .stream()
                     .filter(route -> route.getStartDateTime().toLocalDate().isEqual(startdate))
