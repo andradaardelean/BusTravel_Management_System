@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable()) //  Dezactivează configurarea predefinită CORS pentru a permite cereri încrucișate din orice sursă.
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // modificam politica de gestionare a sesiunilor in stateless, pt ca autentificarea se bazeaza pe token-uri JWT nu pe sesiuni
                 .authenticationProvider(authenticationProvider()) //Specifică provider-ul de autentificare configurat mai devreme.
+                .addFilterBefore(new CorsFilter(), ChannelProcessingFilter.class)
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class) //Adaugă JwtAuthFilter înainte de UsernamePasswordAuthenticationFilter pentru a procesa token-urile JWT înainte de autentificarea bazată pe username și parolă.
                 .build();
     }

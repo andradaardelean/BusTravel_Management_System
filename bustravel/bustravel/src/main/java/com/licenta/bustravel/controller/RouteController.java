@@ -19,8 +19,8 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @RestController
-@CrossOrigin
-@RequestMapping("api/route")
+@CrossOrigin(origins = "http://localhost:9000", allowedHeaders = "*")
+@RequestMapping("api/routes")
 public class RouteController {
     @Autowired
     private JwtService jwtService;

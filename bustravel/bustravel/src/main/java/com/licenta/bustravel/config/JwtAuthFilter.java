@@ -10,6 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -20,11 +22,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserInfoService userInfoService;
     // functia doFilterInternal este  locul unde are loc procesarea efectivă a fiecărui request.
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
         String username = null;
         String token = null;
+
+
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){   // extragem token-ul din header-ul de autorizare
             token = authorizationHeader.substring(7);
             username = jwtService.extractUsername(token);
@@ -37,7 +43,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autentificarea este disponibilă pentru a fi utilizată în continuarea procesării cererii.
             }
         }
-        filterChain.doFilter(request, response); // permite cererii să parcurgă toate celelalte filtre configurate în aplicație.
+        if ("OPTIONS".equals(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            filterChain.doFilter(request, response);
+        }
+//        filterChain.doFilter(request, response); // permite cererii să parcurgă toate celelalte filtre configurate în aplicație.
     }
 }
 
