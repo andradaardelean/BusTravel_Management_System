@@ -2,9 +2,9 @@ package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.*;
 import com.licenta.bustravel.config.JwtService;
-import com.licenta.bustravel.entities.RouteEntity;
-import com.licenta.bustravel.entities.StopEntity;
-import com.licenta.bustravel.entities.enums.RecurrenceType;
+import com.licenta.bustravel.model.RouteEntity;
+import com.licenta.bustravel.model.StopEntity;
+import com.licenta.bustravel.model.enums.RecurrenceType;
 import com.licenta.bustravel.service.RouteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

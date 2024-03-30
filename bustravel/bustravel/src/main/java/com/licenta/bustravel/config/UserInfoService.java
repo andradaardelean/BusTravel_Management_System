@@ -1,7 +1,7 @@
 package com.licenta.bustravel.config;
 
 
-import com.licenta.bustravel.entities.UserEntity;
+import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

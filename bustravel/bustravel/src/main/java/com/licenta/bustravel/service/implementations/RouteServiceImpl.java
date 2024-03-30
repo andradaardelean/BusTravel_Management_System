@@ -1,9 +1,9 @@
 package com.licenta.bustravel.service.implementations;
 
 import com.licenta.bustravel.controller.RouteController;
-import com.licenta.bustravel.entities.*;
-import com.licenta.bustravel.entities.enums.RecurrenceType;
-import com.licenta.bustravel.entities.enums.UserType;
+import com.licenta.bustravel.model.*;
+import com.licenta.bustravel.model.enums.RecurrenceType;
+import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.*;
 import com.licenta.bustravel.service.RouteService;
 import org.springframework.beans.factory.annotation.Autowired;

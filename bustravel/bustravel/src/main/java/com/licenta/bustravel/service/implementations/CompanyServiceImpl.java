@@ -1,9 +1,9 @@
 package com.licenta.bustravel.service.implementations;
 
 import com.licenta.bustravel.email.EmailSender;
-import com.licenta.bustravel.entities.CompanyEntity;
-import com.licenta.bustravel.entities.UserEntity;
-import com.licenta.bustravel.entities.enums.UserType;
+import com.licenta.bustravel.model.CompanyEntity;
+import com.licenta.bustravel.model.UserEntity;
+import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.CompanyService;

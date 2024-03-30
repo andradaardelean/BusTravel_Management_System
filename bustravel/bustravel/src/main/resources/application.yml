@@ -3,8 +3,8 @@ server:
 spring:
   datasource:
     username: postgres
-    password: root
-    url: jdbc:postgresql://localhost:5432/bustravelapp
+    password: VeryStronGPassWord@1137
+    url: jdbc:postgresql://13.49.226.163:5432/postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:

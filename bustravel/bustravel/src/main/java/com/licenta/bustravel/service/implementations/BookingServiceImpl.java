@@ -1,6 +1,6 @@
 package com.licenta.bustravel.service.implementations;
 
-import com.licenta.bustravel.entities.BookingEntity;
+import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.repositories.BookingRepository;
 import com.licenta.bustravel.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;

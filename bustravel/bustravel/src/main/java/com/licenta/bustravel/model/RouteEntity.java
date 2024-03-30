@@ -1,6 +1,6 @@
-package com.licenta.bustravel.entities;
+package com.licenta.bustravel.model;
 
-import com.licenta.bustravel.entities.enums.RecurrenceType;
+import com.licenta.bustravel.model.enums.RecurrenceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

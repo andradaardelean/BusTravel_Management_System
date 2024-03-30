@@ -1,4 +1,4 @@
-package com.licenta.bustravel.entities;
+package com.licenta.bustravel.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

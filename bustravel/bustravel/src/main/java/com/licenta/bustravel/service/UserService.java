@@ -1,7 +1,7 @@
 package com.licenta.bustravel.service;
 
 
-import com.licenta.bustravel.entities.UserEntity;
+import com.licenta.bustravel.model.UserEntity;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,8 +1,6 @@
 package com.licenta.bustravel.repositories;
 
-import com.licenta.bustravel.entities.CompanyEntity;
-import com.licenta.bustravel.entities.UserEntity;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import com.licenta.bustravel.model.CompanyEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

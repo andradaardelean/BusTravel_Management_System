@@ -2,7 +2,7 @@ package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.CompanyDTO;
 import com.licenta.bustravel.config.JwtService;
-import com.licenta.bustravel.entities.CompanyEntity;
+import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,5 +32,6 @@ public class CompanyController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid add request!");
         }
     }
+
 
 }

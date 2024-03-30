@@ -1,6 +1,6 @@
-package com.licenta.bustravel.entities;
+package com.licenta.bustravel.model;
 
-import com.licenta.bustravel.entities.enums.UserType;
+import com.licenta.bustravel.model.enums.UserType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +19,7 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id", unique = true, nullable = false)
     private int id;
+
     @Column(name="username", unique=true)
     private String username;
     @Column(name="password")
