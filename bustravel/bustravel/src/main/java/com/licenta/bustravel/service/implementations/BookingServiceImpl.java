@@ -1,8 +1,11 @@
 package com.licenta.bustravel.service.implementations;
 
 import com.licenta.bustravel.model.BookingEntity;
+import com.licenta.bustravel.model.RouteEntity;
+import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.repositories.BookingRepository;
 import com.licenta.bustravel.service.BookingService;
+import com.licenta.bustravel.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,8 @@ import java.util.Optional;
 public class BookingServiceImpl implements BookingService {
     @Autowired
     private BookingRepository bookingRepository;
+    @Autowired
+    private UserService userService;
     @Override
     public void add(BookingEntity booking) throws Exception {
         try {
@@ -51,5 +56,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingEntity> getAll() {
         return bookingRepository.findAll();
+    }
+
+    @Override
+    public List<BookingEntity> getBookingsForUser(String username) throws Exception {
+        UserEntity user = userService.getByUsername(username);
+        return bookingRepository.findByUserEntity(user);
     }
 }

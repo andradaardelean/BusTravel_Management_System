@@ -1,5 +1,6 @@
 package com.licenta.bustravel.service;
 
+import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.CompanyEntity;
 
 import java.util.List;

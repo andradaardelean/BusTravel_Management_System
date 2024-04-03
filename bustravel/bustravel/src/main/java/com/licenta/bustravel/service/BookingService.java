@@ -11,4 +11,6 @@ public interface BookingService {
     void modify(BookingEntity booking) throws Exception;
     void delete(BookingEntity booking) throws Exception;
     List<BookingEntity> getAll();
+    List<BookingEntity> getBookingsForUser(String username) throws Exception;
+
 }

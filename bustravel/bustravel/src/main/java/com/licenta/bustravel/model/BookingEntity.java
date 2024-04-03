@@ -1,5 +1,6 @@
 package com.licenta.bustravel.model;
 
+import com.licenta.bustravel.model.enums.BookingType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +20,7 @@ public class BookingEntity {
     private int id;
 
     @Column(name = "passagers_no")
-    private int passagersNo;
+    private int passegersNo;
     @Column(name = "time")
     private LocalDateTime time;
     @ManyToOne
@@ -29,5 +30,8 @@ public class BookingEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
+
+    @Column(name = "type")
+    private BookingType type;
 
 }

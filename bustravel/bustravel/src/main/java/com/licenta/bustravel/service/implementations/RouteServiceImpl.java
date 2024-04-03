@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -34,10 +35,13 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public void add(List<RouteEntity> routeEntities, List<StopEntity> stops) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username).get();
-        if (userCurrent.getUserType().equals(UserType.CLIENT)) {
+        UserEntity userCurrent = userRepository.findByUsername(username)
+                .get();
+        if (userCurrent.getUserType()
+                .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
         try {
@@ -59,13 +63,14 @@ public class RouteServiceImpl implements RouteService {
                 }
             }
             List<IntermediateRoutesEntity> intermediateRoutes = routeEntities.stream()
-                    .flatMap(route -> stops.stream().map(stop -> {
-                        IntermediateRoutesEntity intermediateRoute = new IntermediateRoutesEntity();
-                        intermediateRoute.setId(0);
-                        intermediateRoute.setRouteId(route.getId());
-                        intermediateRoute.setStopId(stop.getId());
-                        return intermediateRoute;
-                    }))
+                    .flatMap(route -> stops.stream()
+                            .map(stop -> {
+                                IntermediateRoutesEntity intermediateRoute = new IntermediateRoutesEntity();
+                                intermediateRoute.setId(0);
+                                intermediateRoute.setRouteId(route.getId());
+                                intermediateRoute.setStopId(stop.getId());
+                                return intermediateRoute;
+                            }))
                     .collect(Collectors.toList());
             intermediateRouteRepository.saveAll(intermediateRoutes);
         } catch (Exception ex) {
@@ -80,10 +85,13 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public void modify(RouteEntity routeEntity, List<StopEntity> stops) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username).get();
-        if (userCurrent.getUserType().equals(UserType.CLIENT)) {
+        UserEntity userCurrent = userRepository.findByUsername(username)
+                .get();
+        if (userCurrent.getUserType()
+                .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
 
@@ -124,10 +132,13 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username).get();
-        if (userCurrent.getUserType().equals(UserType.CLIENT)) {
+        UserEntity userCurrent = userRepository.findByUsername(username)
+                .get();
+        if (userCurrent.getUserType()
+                .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
         RouteEntity routeToRemove = routeRepository.findRoute(routeEntity.getStartDateTime(),
@@ -168,48 +179,106 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findAll();
     }
 
-    @Override
-    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation, String endLocation,
-                                    String passangersNo) throws Exception {
+//    @Override
+//    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation,
+//                                    String endLocation, String passangersNo) throws Exception {
+//        List<RouteEntity> foundRoutes;
+//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm");
+//        LocalDateTime startdate = LocalDateTime.parse(startDate, dateTimeFormatter);
+//        LocalDateTime enddate = LocalDateTime.parse(endDate, dateTimeFormatter);
+////        foundRoutes = routeRepository.searchRoute(startdate, enddate, startLocation, endLocation);
+//        if (!Objects.equals(search, "null")) {
+//            foundRoutes = filterRoutes(search);
+//        }
+//        if (Objects.equals(endDate, "null")) {
+//            foundRoutes = routeRepository.findAll()
+//                    .stream()
+//                    .filter(route -> route.getStartDateTime()
+//                            .toLocalDate()
+//                            .isEqual(startdate))
+//                    .toList();
+//        } else {
+//            LocalDate enddate = LocalDate.parse(endDate, dateTimeFormatter);
+//            foundRoutes = routeRepository.findAll()
+//                    .stream()
+//                    .filter(routeEntity -> (routeEntity.getStartDateTime()
+//                            .toLocalDate()
+//                            .isAfter(startdate) || routeEntity.getStartDateTime()
+//                            .toLocalDate()
+//                            .isEqual(startdate)) && (routeEntity.getStartDateTime()
+//                            .toLocalDate()
+//                            .isBefore(enddate) || routeEntity.getStartDateTime()
+//                            .toLocalDate()
+//                            .isEqual(enddate)))
+//                    .toList();
+//        }
+//        if (!Objects.equals(startLocation, "null")) {
+//            foundRoutes = foundRoutes.stream()
+//                    .filter(routeEntity -> routeEntity.getStartLocation()
+//                            .equals(startLocation))
+//                    .toList();
+//        }
+//        if (!Objects.equals(endLocation, "null")) {
+//
+//            foundRoutes = foundRoutes.stream()
+//                    .filter(routeEntity -> routeEntity.getEndLocation()
+//                            .equals(endLocation))
+//                    .toList();
+//        }
+//        if (!Objects.equals(passangersNo, "null")) {
+//            Integer passangers = Integer.parseInt(passangersNo);
+//            foundRoutes = foundRoutes.stream()
+//                    .filter(routeEntity -> routeEntity.getAvailableSeats() > passangers)
+//                    .toList();
+//        }
+//        return foundRoutes;
+//    }
+
+    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation,
+                                    String endLocation, String passengersNo) {
         List<RouteEntity> foundRoutes;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate startdate = LocalDate.parse(startDate, dateTimeFormatter);
-        if (Objects.equals(endDate, "null")) {
-            foundRoutes = routeRepository.findAll()
-                    .stream()
-                    .filter(route -> route.getStartDateTime().toLocalDate().isEqual(startdate))
-                    .toList();
-        } else {
-            LocalDate enddate = LocalDate.parse(endDate, dateTimeFormatter);
-            foundRoutes = routeRepository.findAll()
-                    .stream()
-                    .filter(routeEntity -> (routeEntity.getStartDateTime()
-                            .toLocalDate()
-                            .isAfter(startdate) || routeEntity.getStartDateTime()
-                            .toLocalDate()
-                            .isEqual(startdate)) && (routeEntity.getStartDateTime()
-                            .toLocalDate()
-                            .isBefore(enddate) || routeEntity.getStartDateTime().toLocalDate().isEqual(enddate)))
-                    .toList();
-        }
-        if (!Objects.equals(startLocation, "null")) {
-            foundRoutes = foundRoutes.stream()
-                    .filter(routeEntity -> routeEntity.getStartLocation().equals(startLocation))
-                    .toList();
-        }
-        if (!Objects.equals(endLocation, "null")) {
+        LocalDate startDateParsed = startDate.equals("null") ? null : LocalDate.parse(startDate, dateTimeFormatter);
+        LocalDate endDateParsed = endDate.equals("null") ? null : LocalDate.parse(endDate, dateTimeFormatter);
+        int passengers = passengersNo.equals("null") ? 0 : Integer.parseInt(passengersNo);
 
-            foundRoutes = foundRoutes.stream()
-                    .filter(routeEntity -> routeEntity.getEndLocation().equals(endLocation))
-                    .toList();
+        Predicate<RouteEntity> filterPredicate = route -> true;
+
+
+        if (!search.equals("null")) {
+            filterPredicate = filterPredicate.and(route -> route.getStartLocation().contains(search) || route.getEndLocation().contains(search));
         }
-        if (!Objects.equals(passangersNo, "null")) {
-            Integer passangers = Integer.parseInt(passangersNo);
-            foundRoutes = foundRoutes.stream()
-                    .filter(routeEntity -> routeEntity.getAvailableSeats() > passangers)
-                    .toList();
+        if (startDateParsed != null) {
+            filterPredicate = filterPredicate.and(route -> route.getStartDateTime().toLocalDate().isEqual(startDateParsed));
         }
+        if (endDateParsed != null) {
+            filterPredicate = filterPredicate.and(route -> route.getEndDateTime().toLocalDate().isEqual(endDateParsed));
+        }
+        if (!startLocation.equals("null")) {
+            filterPredicate = filterPredicate.and(route -> route.getStartLocation().equals(startLocation));
+        }
+        if (!endLocation.equals("null")) {
+            filterPredicate = filterPredicate.and(route -> route.getEndLocation().equals(endLocation));
+        }
+        if (passengers > 0) {
+            filterPredicate = filterPredicate.and(route -> route.getAvailableSeats() >= passengers);
+        }
+
+        // Apply filter predicate
+        foundRoutes = routeRepository.findAll().stream()
+                .filter(filterPredicate)
+                .toList();
+
         return foundRoutes;
+    }
+
+    public List<RouteEntity> filterRoutes(String search){
+        return routeRepository.findAll()
+                .stream()
+                .filter(routeEntity -> routeEntity.getStartLocation()
+                        .contains(search) || routeEntity.getEndLocation()
+                        .contains(search))
+                .toList();
     }
 
     public List<StopEntity> getAllStops() {
