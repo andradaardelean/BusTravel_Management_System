@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 @Service
 public class JwtService {
     private Set<String> invalidatedTokens = new HashSet<>();
@@ -22,8 +25,9 @@ public class JwtService {
     public boolean isTokenValid(String token){
         return !invalidatedTokens.contains(token);
     }
-    public String generateToken(String username){
+    public String generateToken(String username, Collection<? extends GrantedAuthority> authorities){
         Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
         return createToken(claims, username);
     }
     private String createToken(Map<String, Object> claims, String username){
@@ -44,7 +48,9 @@ public class JwtService {
     }
     public Boolean validateToken(String token, UserDetails userDTO){
         final String username = extractUsername(token);
-        return (username.equals(userDTO.getUsername()) && !isTokenExpired(token));
+        final Collection<? extends GrantedAuthority> roles = userDTO.getAuthorities();
+        final List<String> tokenRoles = extractClaim(token, claims -> claims.get("roles", List.class));
+        return (username.equals(userDTO.getUsername()) && roles.containsAll(tokenRoles) && !isTokenExpired(token));
     }
 
     public String extractUsername(String token){

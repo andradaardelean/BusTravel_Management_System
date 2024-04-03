@@ -3,6 +3,7 @@ package com.licenta.bustravel.config;
 
 import com.licenta.bustravel.model.UserEntity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -15,6 +16,8 @@ public class UserInfo implements UserDetails {
     public UserInfo(UserEntity user){
         this.username = user.getUsername();
         this.password = user.getPassword();
+        System.out.println("User type: " + user.getUserType().toString());
+        this.authorityList = List.of(new SimpleGrantedAuthority(user.getUserType().toString()));
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

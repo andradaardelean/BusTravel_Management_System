@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +43,8 @@ public class BookingController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Token already invalidated!");
             }
+//            List<String> roles = jwtService.extractClaim(token, claims -> claims.get("roles", List.class));
+//            System.out.println("Roles: " + roles);
             return ResponseEntity.ok(bookingService.getAll());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
