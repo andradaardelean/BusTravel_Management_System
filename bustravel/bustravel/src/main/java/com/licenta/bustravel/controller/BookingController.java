@@ -3,10 +3,13 @@ package com.licenta.bustravel.controller;
 import com.licenta.bustravel.DTO.BookingDTO;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.BookingEntity;
+import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.enums.BookingType;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.RouteService;
 import org.apache.coyote.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +18,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
-@RequestMapping("/booking")
+@RequestMapping("api/booking")
 @CrossOrigin
 public class BookingController {
     @Autowired
@@ -27,8 +31,10 @@ public class BookingController {
     @Autowired
     JwtService jwtService;
 
-    @GetMapping("")
-    public @ResponseBody ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String authorization ) {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BookingController.class);
+
+    @GetMapping()
+    public @ResponseBody ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String authorization) {
         try {
             String token = authorization.substring(7);
             if (!jwtService.isTokenValid(token)) {
@@ -43,27 +49,42 @@ public class BookingController {
     }
 
     @GetMapping("/{username}")
-    public @ResponseBody ResponseEntity<List<BookingEntity>> getBookingsByUsername(@RequestHeader String authorization, String username) {
-        try{
+    public @ResponseBody ResponseEntity<?> getBookingsByUsername(@RequestHeader String authorization,
+                                                                                   @PathVariable String username) {
+        try {
+            LOGGER.info("Getting bookings for user: " + username);
             String token = authorization.substring(7);
-            if(!jwtService.isTokenValid(token))
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-            return ResponseEntity.ok(bookingService.getBookingsForUser(username));
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(null);
+            List<BookingEntity> bookings = bookingService.getBookingsForUser(username);
+//            return ResponseEntity.ok(bookingService.getBookingsForUser(username));
+//            return ResponseEntity.ok(bookingService.getBookingsForUser(username));
+
+            return new ResponseEntity<>(bookings, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null);
         }
     }
 
     @PostMapping("/add")
-    public @ResponseBody ResponseEntity<?> addBooking(@RequestHeader("Authorization") String authorization, @RequestBody BookingDTO booking) {
+    public @ResponseBody ResponseEntity<?> addBooking(@RequestHeader("Authorization") String authorization,
+                                                      @RequestBody BookingDTO booking) {
         try {
             String token = authorization.substring(7);
             if (!jwtService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Token already invalidated!");
             }
-//            bookingService.add(new BookingEntity(0,booking.getPassengersNo(), LocalDateTime.now(), routeService.getById(booking.getRouteId()).get(),
-//                    BookingType.valueOf(booking.getBookingType()), booking.getUser()
+
+            RouteEntity route = routeService.getById(booking.getRouteId())
+                    .orElseThrow(() -> new Exception("Route not found!"));
+//            LOGGER.info("Route found: " + route);
+//            bookingService.add(new BookingEntity(0, booking.getPassengersNo(), LocalDateTime.now(), route, null,
+//                    BookingType.valueOf(booking.getType())));
+            bookingService.add(new BookingEntity(0, booking.getPassengersNo(), LocalDateTime.now(), route, null,
+                    BookingType.valueOf(booking.getType())));
             return ResponseEntity.ok("Booking added successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

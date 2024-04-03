@@ -1,5 +1,6 @@
 package com.licenta.bustravel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.licenta.bustravel.model.enums.UserType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,7 @@ public class UserEntity {
     @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
 
+
     @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<BookingEntity> bookingList = new ArrayList<>();
 
@@ -49,5 +51,13 @@ public class UserEntity {
         boolean isPhoneValid = phone.matches("\\d+");
         boolean isEmailValid = email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
         return isPhoneValid && isEmailValid;
+    }
+
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                '}';
     }
 }

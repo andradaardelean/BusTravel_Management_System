@@ -62,4 +62,11 @@ public class RouteEntity {
     @Enumerated(EnumType.STRING)
     private RecurrenceType recurrenceType;
 
+    @Override
+    public String toString() {
+        return "RouteEntity{" + "id=" + id + ", startDateTime=" + startDateTime + ", endDateTime=" + endDateTime + "," +
+                " startLocation='" + startLocation + '\'' + ", endLocation='" + endLocation + '\'' + ", " +
+                "availableSeats=" + availableSeats + ", totalSeats=" + totalSeats + ", price=" + price + ", " +
+                "reccurencyNo=" + reccurencyNo + ", recurrenceType=" + recurrenceType + '}';
+    }
 }

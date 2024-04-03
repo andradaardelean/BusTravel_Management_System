@@ -79,7 +79,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public Optional getById(int id) throws Exception {
+    public Optional<RouteEntity> getById(int id) throws Exception {
         return routeRepository.findById(id);
     }
 

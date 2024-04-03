@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface RouteService {
     void add(List<RouteEntity> routeEntity, List<StopEntity> intermediateLocations) throws Exception;
-    Optional getById(int id) throws Exception;
+    Optional<RouteEntity> getById(int id) throws Exception;
     void modify(RouteEntity routeEntity, List<StopEntity> intermediateLocations) throws Exception;
     void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception;
     List<RouteEntity> getAll() throws Exception;

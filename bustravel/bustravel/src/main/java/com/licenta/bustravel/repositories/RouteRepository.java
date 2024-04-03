@@ -8,16 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RouteRepository extends JpaRepository<RouteEntity, Integer>, JpaSpecificationExecutor<RouteEntity> {
     @Query("select route from RouteEntity route where route.startDateTime=:startDateTime and route.endDateTime=:endDateTime and route.startLocation=:startLocation and route.endLocation=:endLocation")
     RouteEntity findRoute(LocalDateTime startDateTime, LocalDateTime endDateTime, String startLocation, String endLocation);
 
-
-    @Query("SELECT route FROM RouteEntity route WHERE :startDateTime IS NULL OR route.startDateTime = :startDateTime " +
-            "AND :endDateTime IS NULL OR route.endDateTime = :endDateTime " +
-            "AND :startLocation IS NULL OR route.startLocation = :startLocation " +
-            "AND :endLocation IS NULL OR route.endLocation = :endLocation")
-    List<RouteEntity> searchRoute(LocalDateTime startDateTime, LocalDateTime endDateTime, String startLocation, String endLocation);
+    Optional<RouteEntity> findById(int id);
 }

@@ -1,5 +1,6 @@
 package com.licenta.bustravel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.licenta.bustravel.model.enums.BookingType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -23,15 +24,22 @@ public class BookingEntity {
     private int passegersNo;
     @Column(name = "time")
     private LocalDateTime time;
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "route_id")
     private RouteEntity routeEntity;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
     @Column(name = "type")
+    @Enumerated(EnumType.STRING)
     private BookingType type;
 
+    @Override
+    public String toString() {
+        return "BookingEntity{" + "id=" + id + ", passegersNo=" + passegersNo + ", time=" + time + ", type=" + type + '}';
+    }
 }

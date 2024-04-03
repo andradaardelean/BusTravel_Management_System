@@ -7,6 +7,8 @@ import com.licenta.bustravel.repositories.BookingRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +23,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void add(BookingEntity booking) throws Exception {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            UserEntity user = userService.getByUsername(username);
+            booking.setUserEntity(user);
             bookingRepository.save(booking);
             System.out.println("Saved booking: " + booking);
         } catch (Exception ex) {
@@ -29,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Optional getById(int id) throws Exception {
+    public Optional<BookingEntity> getById(int id) throws Exception {
         return bookingRepository.findById(id);
     }
 
@@ -60,7 +66,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingEntity> getBookingsForUser(String username) throws Exception {
+        System.out.println(username);
         UserEntity user = userService.getByUsername(username);
-        return bookingRepository.findByUserEntity(user);
+        System.out.println("Found user: " + user);
+        List<BookingEntity> bookings = bookingRepository.findByUserEntity(user);
+        System.out.println("Found bookings: " + bookings);
+        return bookings;
     }
 }
