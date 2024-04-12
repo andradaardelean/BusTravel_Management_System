@@ -13,4 +13,5 @@ public interface UserService {
     void modify(UserEntity user) throws Exception;
     void delete(UserEntity user) throws Exception;
     List<UserEntity> getAll() throws  Exception;
+    List<UserEntity> getUsersByCompany(String company) throws Exception;
 }

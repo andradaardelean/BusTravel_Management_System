@@ -5,9 +5,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -18,6 +19,8 @@ import java.util.stream.Collectors;
 @Service
 public class JwtService {
     private Set<String> invalidatedTokens = new HashSet<>();
+
+    private Logger LOGGER = LoggerFactory.getLogger(JwtService.class.getName());
 
     public void invalidateToken(String token){
         invalidatedTokens.add(token);
@@ -48,9 +51,11 @@ public class JwtService {
     }
     public Boolean validateToken(String token, UserDetails userDTO){
         final String username = extractUsername(token);
-        final Collection<? extends GrantedAuthority> roles = userDTO.getAuthorities();
-        final List<String> tokenRoles = extractClaim(token, claims -> claims.get("roles", List.class));
-        return (username.equals(userDTO.getUsername()) && roles.containsAll(tokenRoles) && !isTokenExpired(token));
+//        final Collection<? extends GrantedAuthority> roles = userDTO.getAuthorities();
+//        final List<String> tokenRoles = extractClaim(token, claims -> claims.get("roles", List.class));
+
+
+        return username.equals(userDTO.getUsername()) && !isTokenExpired(token);
     }
 
     public String extractUsername(String token){

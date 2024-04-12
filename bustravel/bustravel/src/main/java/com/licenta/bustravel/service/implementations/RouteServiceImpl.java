@@ -272,6 +272,11 @@ public class RouteServiceImpl implements RouteService {
         return foundRoutes;
     }
 
+    @Override
+    public List<RouteEntity> getRoutesForCompany(String company) throws Exception {
+        return routeRepository.findByCompany(company);
+    }
+
     public List<RouteEntity> filterRoutes(String search){
         return routeRepository.findAll()
                 .stream()

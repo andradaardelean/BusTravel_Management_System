@@ -15,6 +15,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.logging.Logger;
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
@@ -23,6 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private UserInfoService userInfoService;
     // functia doFilterInternal este  locul unde are loc procesarea efectivă a fiecărui request.
 
+    private Logger LOGGER = Logger.getLogger(JwtAuthFilter.class.getName());
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,9 +40,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = userInfoService.loadUserByUsername(username);
+            LOGGER.info("UserDetails: " + userDetails);
             if(jwtService.validateToken(token, userDetails)){
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null); // reprpezinta autentificarea utilizatorului
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+               LOGGER.info("username: " + authenticationToken.getName());
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken); //autentificarea este disponibilă pentru a fi utilizată în continuarea procesării cererii.
             }
         }

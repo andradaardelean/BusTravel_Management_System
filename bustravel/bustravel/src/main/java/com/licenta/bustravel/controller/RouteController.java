@@ -181,4 +181,26 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Get by id failed!");
         }
     }
+
+    @GetMapping("/forCompany/{company}")
+    public @ResponseBody ResponseEntity<?> getRoutesForCompany(@RequestHeader("Authorization") String authorizationHeader,
+                                                               @PathVariable String company) {
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
+            }
+            List<RouteEntity> routeEntities = routeService.getRoutesForCompany(company);
+            List<RouteDTO> result = new ArrayList<>();
+            for (RouteEntity route : routeEntities) {
+                result.add(new RouteDTO(route.getId(), route.getStartDateTime().toString(),
+                        route.getEndDateTime().toString(), route.getStartLocation(), route.getEndLocation(),
+                        route.getAvailableSeats(), route.getPrice(), route.getTotalSeats()));
+            }
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Get routes for company failed!");
+        }
+    }
+
 }

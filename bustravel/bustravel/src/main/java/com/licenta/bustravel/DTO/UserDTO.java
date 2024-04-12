@@ -1,16 +1,15 @@
 package com.licenta.bustravel.DTO;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-@Builder
-public class CompanyDTO {
+public class UserDTO {
+    String username;
     String name;
-    String description;
-    String ownerName;
-    String ownerEmail;
     String phone;
+    String email;
+    String userType;
+    String company;
 }

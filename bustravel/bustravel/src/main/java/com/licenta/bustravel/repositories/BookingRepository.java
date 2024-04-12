@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<BookingEntity, Integer> {
     List<BookingEntity> findByUserEntity(UserEntity userEntity);
+
+    List<BookingEntity> findByRouteEntity(RouteEntity routeEntity);
 }

@@ -36,6 +36,7 @@ public class UserEntity {
     private UserType userType;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
 

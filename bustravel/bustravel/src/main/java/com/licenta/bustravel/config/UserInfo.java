@@ -16,7 +16,6 @@ public class UserInfo implements UserDetails {
     public UserInfo(UserEntity user){
         this.username = user.getUsername();
         this.password = user.getPassword();
-        System.out.println("User type: " + user.getUserType().toString());
         this.authorityList = List.of(new SimpleGrantedAuthority(user.getUserType().toString()));
     }
     @Override

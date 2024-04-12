@@ -16,4 +16,7 @@ public interface RouteRepository extends JpaRepository<RouteEntity, Integer>, Jp
     RouteEntity findRoute(LocalDateTime startDateTime, LocalDateTime endDateTime, String startLocation, String endLocation);
 
     Optional<RouteEntity> findById(int id);
+
+    @Query("select route from RouteEntity route where route.companyEntity.name=:company")
+    List<RouteEntity> findByCompany(String company);
 }

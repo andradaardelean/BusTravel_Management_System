@@ -52,7 +52,7 @@ public class BookingController {
         }
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/byUsername/{username}")
     public @ResponseBody ResponseEntity<?> getBookingsByUsername(@RequestHeader String authorization,
                                                                                    @PathVariable String username) {
         try {
@@ -84,15 +84,30 @@ public class BookingController {
 
             RouteEntity route = routeService.getById(booking.getRouteId())
                     .orElseThrow(() -> new Exception("Route not found!"));
-//            LOGGER.info("Route found: " + route);
-//            bookingService.add(new BookingEntity(0, booking.getPassengersNo(), LocalDateTime.now(), route, null,
-//                    BookingType.valueOf(booking.getType())));
+
             bookingService.add(new BookingEntity(0, booking.getPassengersNo(), LocalDateTime.now(), route, null,
                     BookingType.valueOf(booking.getType())));
             return ResponseEntity.ok("Booking added successfully!");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Add booking does not work. " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/byRoute/{routeid}")
+    public @ResponseBody ResponseEntity<?> getBookingsForRoute(@RequestHeader("Authorization") String authorization,
+                                                                                   @PathVariable int routeid) {
+        try {
+            LOGGER.info("Getting bookings for route: " + routeid);
+            String token = authorization.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(null);
+            List<BookingEntity> bookings = bookingService.getBookingsForRoute(routeid);
+            return new ResponseEntity<>(bookings, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null);
         }
     }
 }

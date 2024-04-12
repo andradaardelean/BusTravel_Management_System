@@ -4,6 +4,7 @@ import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.repositories.BookingRepository;
+import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ public class BookingServiceImpl implements BookingService {
     private BookingRepository bookingRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private RouteRepository routeRepository;
     @Override
     public void add(BookingEntity booking) throws Exception {
         try {
@@ -72,5 +75,11 @@ public class BookingServiceImpl implements BookingService {
         List<BookingEntity> bookings = bookingRepository.findByUserEntity(user);
         System.out.println("Found bookings: " + bookings);
         return bookings;
+    }
+
+    @Override
+    public List<BookingEntity> getBookingsForRoute(int routeId) throws Exception {
+        RouteEntity route = routeRepository.findById(routeId).orElseThrow(() -> new Exception("Route not found!"));
+        return bookingRepository.findByRouteEntity(route);
     }
 }

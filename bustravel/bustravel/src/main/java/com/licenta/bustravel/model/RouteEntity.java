@@ -1,5 +1,6 @@
 package com.licenta.bustravel.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,6 +43,7 @@ public class RouteEntity {
     private Double price;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "company_id")
     private CompanyEntity companyEntity;
 
