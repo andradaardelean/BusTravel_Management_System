@@ -31,7 +31,6 @@ public class UserServiceImpl implements UserService {
             String encodedPassword = passwordEncoder.encode(user.getPassword());
             user.setPassword(encodedPassword);
             userRepository.save(user);
-            System.out.println("saved user:" + user);
         } else
             throw new Exception("Invalid data");
     }
@@ -48,28 +47,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void modify(UserEntity user) throws Exception {
-        LOGGER.info("Modifying2 user: " + user);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        LOGGER.info("Current user9: " + authentication.getName());
         String username = authentication.getName();
         UserEntity currentUser = userRepository.findByUsername(username).orElseThrow();
-        LOGGER.info("Current user3: " + currentUser);
         UserEntity userToModify = userRepository.getByUsername(
                 user.getUsername()) == null ? userRepository.getByUsername(
                 currentUser.getUsername()) : userRepository.getByUsername(user.getUsername());
-        LOGGER.info("User to modify4: " + userToModify);
-        LOGGER.info(currentUser.getUserType() == UserType.ADMIN ? "Admin" : "Not admin");
-        LOGGER.info(currentUser.getUsername().equals(user.getUsername()) ? "Current user5" : "Not current user");
         if (currentUser.getUserType() == UserType.ADMIN || currentUser.getUsername()
                 .equals(user.getUsername()) || userToModify.getCompanyEntity()
                 .equals(currentUser.getCompanyEntity())) {
             user.setId(userToModify.getId());
             user.setPassword(userToModify.getPassword());
-            LOGGER.info("User to modify6: " + user);
             if(user.getCompanyEntity() != null)
                 user.setCompanyEntity(userToModify.getCompanyEntity());
-
-
             userRepository.save(user);
         } else
             throw new Exception("You are not allowed to modify this user!");
@@ -89,7 +79,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserEntity> getUsersByCompany(String company) throws Exception {
+    public List<UserEntity> getUsersByCompany(String company) {
         return userRepository.findByCompany(company);
     }
 }

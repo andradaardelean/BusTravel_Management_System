@@ -4,18 +4,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "routes")
+@Builder
 public class RouteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,15 +51,15 @@ public class RouteEntity {
     @JoinColumn(name = "company_id")
     private CompanyEntity companyEntity;
 
-    @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BookingEntity> bookingList = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinTable(
             name = "intermediate_routes",
             joinColumns = @JoinColumn(name = "route_id"),
             inverseJoinColumns = @JoinColumn(name = "stop_id"))
-    private List<StopEntity> stopEntities = new ArrayList<>();
+    private Set<StopEntity> stopEntities = new HashSet<>();
 
     @Column(name = "recurrence_no")
     private Integer reccurencyNo;
@@ -70,5 +74,10 @@ public class RouteEntity {
                 " startLocation='" + startLocation + '\'' + ", endLocation='" + endLocation + '\'' + ", " +
                 "availableSeats=" + availableSeats + ", totalSeats=" + totalSeats + ", price=" + price + ", " +
                 "reccurencyNo=" + reccurencyNo + ", recurrenceType=" + recurrenceType + '}';
+    }
+
+    public void addStop(StopEntity stopEntity) {
+        stopEntities.add(stopEntity);
+//        stopEntity.getRouteEntityList().add(this);
     }
 }

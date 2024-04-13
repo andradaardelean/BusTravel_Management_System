@@ -1,11 +1,18 @@
 package com.licenta.bustravel.service.implementations;
 
+import com.licenta.bustravel.DTO.StopsDTO;
+import com.licenta.bustravel.DTO.converter.RouteMapper;
 import com.licenta.bustravel.controller.RouteController;
 import com.licenta.bustravel.model.*;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.*;
 import com.licenta.bustravel.service.RouteService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import org.apache.catalina.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,25 +23,20 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Service
 public class RouteServiceImpl implements RouteService {
-    private static final Logger LOGGER = Logger.getLogger(RouteController.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(RouteController.class.getName());
     @Autowired
     UserRepository userRepository;
     @Autowired
     StopsRepository stopsRepository;
     @Autowired
-    IntermediateRouteRepository intermediateRouteRepository;
-    @Autowired
     CompanyRepository companyRepository;
     @Autowired
     private RouteRepository routeRepository;
 
-    @Override
-    public void add(List<RouteEntity> routeEntities, List<StopEntity> stops) throws Exception {
+    public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
         String username = authentication.getName();
@@ -44,37 +46,108 @@ public class RouteServiceImpl implements RouteService {
                 .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
-        try {
-            CompanyEntity companyEntity = userCurrent.getCompanyEntity();
-            List<RouteEntity> sortedRoutes = new ArrayList<>(routeEntities);
-            sortedRoutes.forEach(routeEntity -> routeEntity.setCompanyEntity(companyEntity));
+        return userCurrent;
+    }
 
-            sortedRoutes = sortedRoutes.stream()
-                    .sorted(Comparator.comparing(RouteEntity::getStartDateTime))
-                    .collect(Collectors.toList());
-            routeRepository.saveAll(sortedRoutes);
-            for (StopEntity stop : stops) {
-                StopEntity stop1 = stopsRepository.findStop(stop.getLocation(), stop.getOrder(), stop.getStop(),
-                        stop.getStopOrder());
-                if (stop1 == null) {
-                    stopsRepository.save(stop);
+    public List<RouteEntity> generateForWeekReccurency(RouteEntity route, List<Integer> days, Integer everyNo) {
+        List<RouteEntity> routes = new ArrayList<>();
+        LocalDateTime initialStartDate = route.getStartDateTime();
+        LocalDateTime initialEndDate = route.getEndDateTime();
+        while (!days.isEmpty()) {
+            for (int i = 0; i < 7; i++) {
+                LocalDateTime startDate = initialStartDate;
+                LocalDateTime endDate = initialEndDate;
+
+                Integer currentDay = startDate.getDayOfWeek()
+                    .getValue() + i - 1;
+                if (currentDay > 6) {
+                    currentDay = currentDay - 7;
+                    startDate = startDate.plusDays(i + 7L * (everyNo - 1));
+                    endDate = endDate.plusDays(i + 7L * (everyNo - 1));
                 } else {
-                    stop.setId(stop1.getId());
+                    startDate = startDate.plusDays(i);
+                    endDate = endDate.plusDays(i);
+                }
+                if (days.contains(currentDay)) {
+                    do {
+                        RouteEntity newRoute = RouteEntity.builder()
+                            .startDateTime(LocalDateTime.of(startDate.toLocalDate(), startDate.toLocalTime()))
+                            .endDateTime(LocalDateTime.of(endDate.toLocalDate(), endDate.toLocalTime()))
+                            .startLocation(route.getStartLocation())
+                            .endLocation(route.getEndLocation())
+                            .availableSeats(route.getAvailableSeats())
+                            .price(route.getPrice())
+                            .totalSeats(route.getTotalSeats())
+                            .reccurencyNo(route.getReccurencyNo())
+                            .recurrenceType(route.getRecurrenceType())
+                            .stopEntities(route.getStopEntities())
+                            .companyEntity(route.getCompanyEntity())
+                            .build();
+                        routes.add(newRoute);
+                        startDate = startDate.plusDays(7L + 7L * (everyNo - 1));
+                        endDate = endDate.plusDays(7L + 7L * (everyNo - 1));
+                    } while (endDate.isBefore(LocalDateTime.parse("2025-01-01T00:00:00")));
+                    days.remove(currentDay);
                 }
             }
-            List<IntermediateRoutesEntity> intermediateRoutes = routeEntities.stream()
-                    .flatMap(route -> stops.stream()
-                            .map(stop -> {
-                                IntermediateRoutesEntity intermediateRoute = new IntermediateRoutesEntity();
-                                intermediateRoute.setId(0);
-                                intermediateRoute.setRouteId(route.getId());
-                                intermediateRoute.setStopId(stop.getId());
-                                return intermediateRoute;
-                            }))
-                    .collect(Collectors.toList());
-            intermediateRouteRepository.saveAll(intermediateRoutes);
+        }
+        return routes;
+    }
+
+    public List<RouteEntity> generateForDayReccurency(RouteEntity route, Integer everyNo, LocalDateTime startDate, LocalDateTime endDate) {
+        List<RouteEntity> routes = new ArrayList<>();
+        do {
+            RouteEntity newRoute = RouteEntity.builder()
+                .startDateTime(LocalDateTime.of(startDate.toLocalDate(), startDate.toLocalTime()))
+                .endDateTime(LocalDateTime.of(endDate.toLocalDate(), endDate.toLocalTime()))
+                .startLocation(route.getStartLocation())
+                .endLocation(route.getEndLocation())
+                .availableSeats(route.getAvailableSeats())
+                .price(route.getPrice())
+                .totalSeats(route.getTotalSeats())
+                .reccurencyNo(route.getReccurencyNo())
+                .recurrenceType(route.getRecurrenceType())
+                .stopEntities(route.getStopEntities())
+                .companyEntity(route.getCompanyEntity())
+                .build();
+            routes.add(newRoute);
+            startDate = startDate.plusDays(everyNo);
+            endDate = endDate.plusDays(everyNo);
+        } while (endDate.isBefore(LocalDateTime.parse("2025-01-01T00:00:00")));
+        return routes;
+    }
+
+    public List<RouteEntity> generateRoutes(RouteEntity route, List<Integer> days) {
+        LocalDateTime startDate = route.getStartDateTime();
+        LocalDateTime endDate = route.getEndDateTime();
+        List<RouteEntity> routes = new ArrayList<>();
+        Integer everyNo = route.getReccurencyNo();
+        RecurrenceType recurrenceType = RecurrenceType.valueOf(route.getRecurrenceType()
+            .toString());
+        if (recurrenceType == RecurrenceType.NONE) {
+            LOGGER.info("No recurrence");
+            routes.add(route);
+        } else if (recurrenceType == RecurrenceType.DAY) {
+            LOGGER.info("Day recurrence");
+            routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate));
+        } else if (recurrenceType == RecurrenceType.WEEK) {
+            LOGGER.info("Week recurrence");
+           routes.addAll(generateForWeekReccurency(route, days, everyNo));
+           LOGGER.info("Routes generated: " + routes);
+        }
+        return routes;
+    }
+
+    @Override
+    public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days) throws Exception {
+        try {
+            UserEntity user = validateUserType();
+            stops.forEach(route::addStop);
+            route.setCompanyEntity(user.getCompanyEntity());
+            List<RouteEntity> routes = generateRoutes(route, days);
+            routeRepository.saveAll(routes);
         } catch (Exception ex) {
-            throw new Exception("Add failed!");
+            throw new Exception("Add failed!" + ex.getMessage());
         }
     }
 
@@ -97,11 +170,6 @@ public class RouteServiceImpl implements RouteService {
 
         try {
             routeRepository.save(routeEntity);
-            // addauga save la stops
-//            for (StopEntity stop : stops) {
-//                stop.setRouteEntity(routeEntity);
-//                stopsRepository.save(stop);
-//            }
         } catch (Exception e) {
             throw new Exception("Modify failed!");
         }
@@ -132,15 +200,7 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-        String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username)
-                .get();
-        if (userCurrent.getUserType()
-                .equals(UserType.CLIENT)) {
-            throw new Exception("Not allowed.");
-        }
+        validateUserType();
         RouteEntity routeToRemove = routeRepository.findRoute(routeEntity.getStartDateTime(),
                 routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
         if (routeToRemove == null) {
@@ -150,23 +210,12 @@ public class RouteServiceImpl implements RouteService {
             if (Boolean.TRUE.equals(removeAll)) {
                 if (routeToRemove.getRecurrenceType() != RecurrenceType.NONE) {
                     List<RouteEntity> routesToDelete = getAllRoutesToDelete(routeToRemove);
-                    for (RouteEntity routeEntity1 : routesToDelete) {
-                        List<IntermediateRoutesEntity> toDelete = intermediateRouteRepository.findAll()
-                                .stream()
-                                .filter(intermediateRoutesEntity -> intermediateRoutesEntity.getRouteId() == routeEntity1.getId())
-                                .toList();
-                        intermediateRouteRepository.deleteAll(toDelete);
-                        routeRepository.delete(routeEntity1);
-                    }
+                    routeRepository.deleteAll(routesToDelete);
+
                 } else {
                     throw new Exception("There is no recurrence for this route");
                 }
             } else {
-                List<IntermediateRoutesEntity> toDelete = intermediateRouteRepository.findAll()
-                        .stream()
-                        .filter(intermediateRoutesEntity -> intermediateRoutesEntity.getRouteId() == routeToRemove.getId())
-                        .toList();
-                intermediateRouteRepository.deleteAll(toDelete);
                 routeRepository.delete(routeToRemove);
             }
         } catch (Exception e) {
@@ -179,60 +228,6 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findAll();
     }
 
-//    @Override
-//    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation,
-//                                    String endLocation, String passangersNo) throws Exception {
-//        List<RouteEntity> foundRoutes;
-//        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm");
-//        LocalDateTime startdate = LocalDateTime.parse(startDate, dateTimeFormatter);
-//        LocalDateTime enddate = LocalDateTime.parse(endDate, dateTimeFormatter);
-////        foundRoutes = routeRepository.searchRoute(startdate, enddate, startLocation, endLocation);
-//        if (!Objects.equals(search, "null")) {
-//            foundRoutes = filterRoutes(search);
-//        }
-//        if (Objects.equals(endDate, "null")) {
-//            foundRoutes = routeRepository.findAll()
-//                    .stream()
-//                    .filter(route -> route.getStartDateTime()
-//                            .toLocalDate()
-//                            .isEqual(startdate))
-//                    .toList();
-//        } else {
-//            LocalDate enddate = LocalDate.parse(endDate, dateTimeFormatter);
-//            foundRoutes = routeRepository.findAll()
-//                    .stream()
-//                    .filter(routeEntity -> (routeEntity.getStartDateTime()
-//                            .toLocalDate()
-//                            .isAfter(startdate) || routeEntity.getStartDateTime()
-//                            .toLocalDate()
-//                            .isEqual(startdate)) && (routeEntity.getStartDateTime()
-//                            .toLocalDate()
-//                            .isBefore(enddate) || routeEntity.getStartDateTime()
-//                            .toLocalDate()
-//                            .isEqual(enddate)))
-//                    .toList();
-//        }
-//        if (!Objects.equals(startLocation, "null")) {
-//            foundRoutes = foundRoutes.stream()
-//                    .filter(routeEntity -> routeEntity.getStartLocation()
-//                            .equals(startLocation))
-//                    .toList();
-//        }
-//        if (!Objects.equals(endLocation, "null")) {
-//
-//            foundRoutes = foundRoutes.stream()
-//                    .filter(routeEntity -> routeEntity.getEndLocation()
-//                            .equals(endLocation))
-//                    .toList();
-//        }
-//        if (!Objects.equals(passangersNo, "null")) {
-//            Integer passangers = Integer.parseInt(passangersNo);
-//            foundRoutes = foundRoutes.stream()
-//                    .filter(routeEntity -> routeEntity.getAvailableSeats() > passangers)
-//                    .toList();
-//        }
-//        return foundRoutes;
-//    }
 
     public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation,
                                     String endLocation, String passengersNo) {
@@ -243,8 +238,6 @@ public class RouteServiceImpl implements RouteService {
         int passengers = passengersNo.equals("null") ? 0 : Integer.parseInt(passengersNo);
 
         Predicate<RouteEntity> filterPredicate = route -> true;
-
-
         if (!search.equals("null")) {
             filterPredicate = filterPredicate.and(route -> route.getStartLocation().contains(search) || route.getEndLocation().contains(search));
         }
@@ -277,24 +270,4 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findByCompany(company);
     }
 
-    public List<RouteEntity> filterRoutes(String search){
-        return routeRepository.findAll()
-                .stream()
-                .filter(routeEntity -> routeEntity.getStartLocation()
-                        .contains(search) || routeEntity.getEndLocation()
-                        .contains(search))
-                .toList();
-    }
-
-    public List<StopEntity> getAllStops() {
-        return stopsRepository.findAll();
-    }
-
-    public List<StopEntity> getStopsForRoute(RouteEntity routeEntity) {
-        List<StopEntity> stops = new ArrayList<>();
-        for (StopEntity stop : stopsRepository.findAll()) {
-            stops.add(stop);
-        }
-        return stops;
-    }
 }
