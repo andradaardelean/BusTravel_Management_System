@@ -7,7 +7,7 @@ import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.CompanyService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,13 +18,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    CompanyRepository companyRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public static String generatePassword() {
         String charLower = "abcdefghijklmnopqrstuvwxyz";
@@ -67,7 +65,7 @@ public class CompanyServiceImpl implements CompanyService {
     public void add(CompanyEntity companyEntity) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username).get();
+        UserEntity userCurrent = userRepository.findByUsername(username).orElseThrow();
         if(!userCurrent.getUserType().equals(UserType.ADMIN)) {
             throw new Exception("Not allowed.");
         }

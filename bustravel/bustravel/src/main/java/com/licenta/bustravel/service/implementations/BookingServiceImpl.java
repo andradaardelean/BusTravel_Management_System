@@ -7,7 +7,7 @@ import com.licenta.bustravel.repositories.BookingRepository;
 import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,13 +16,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class BookingServiceImpl implements BookingService {
-    @Autowired
-    private BookingRepository bookingRepository;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RouteRepository routeRepository;
+    private final BookingRepository bookingRepository;
+    private final UserService userService;
+    private final RouteRepository routeRepository;
     @Override
     public void add(BookingEntity booking) throws Exception {
         try {
@@ -31,7 +29,6 @@ public class BookingServiceImpl implements BookingService {
             UserEntity user = userService.getByUsername(username);
             booking.setUserEntity(user);
             bookingRepository.save(booking);
-            System.out.println("Saved booking: " + booking);
         } catch (Exception ex) {
             throw new Exception(ex);
         }
@@ -69,11 +66,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingEntity> getBookingsForUser(String username) throws Exception {
-        System.out.println(username);
         UserEntity user = userService.getByUsername(username);
-        System.out.println("Found user: " + user);
         List<BookingEntity> bookings = bookingRepository.findByUserEntity(user);
-        System.out.println("Found bookings: " + bookings);
         return bookings;
     }
 

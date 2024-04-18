@@ -6,6 +6,7 @@ import com.licenta.bustravel.model.enums.RecurrenceType;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -36,7 +37,8 @@ public class RouteMapper {
             .totalSeats(route.getTotalSeats())
             .reccurencyNo(reccurencyNo)
             .recurrenceType(recurrenceType)
-            .stopEntities(new HashSet<>())
+            .bookingList(new ArrayList<>())
+            .links(new ArrayList<>())
             .build();
     }
 

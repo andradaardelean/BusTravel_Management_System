@@ -9,7 +9,5 @@ import lombok.Data;
 @Builder
 public class StopsDTO {
     String location;
-    Integer order;
-    String stop;
-    Integer stopOrder;
+    String address;
 }

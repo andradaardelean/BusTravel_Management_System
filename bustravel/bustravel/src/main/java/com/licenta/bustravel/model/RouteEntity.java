@@ -54,13 +54,6 @@ public class RouteEntity {
     @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BookingEntity> bookingList = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-    @JoinTable(
-            name = "intermediate_routes",
-            joinColumns = @JoinColumn(name = "route_id"),
-            inverseJoinColumns = @JoinColumn(name = "stop_id"))
-    private Set<StopEntity> stopEntities = new HashSet<>();
-
     @Column(name = "recurrence_no")
     private Integer reccurencyNo;
 
@@ -76,8 +69,6 @@ public class RouteEntity {
                 "reccurencyNo=" + reccurencyNo + ", recurrenceType=" + recurrenceType + '}';
     }
 
-    public void addStop(StopEntity stopEntity) {
-        stopEntities.add(stopEntity);
-//        stopEntity.getRouteEntityList().add(this);
-    }
+    @OneToMany(mappedBy = "route",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<LinkEntity> links = new ArrayList<>();
 }

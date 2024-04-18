@@ -8,9 +8,9 @@ import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.StopEntity;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import com.licenta.bustravel.service.RouteService;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,18 +20,17 @@ import java.util.List;
 
 
 @RestController
+@AllArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/routes")
 public class RouteController {
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private RouteService routeService;
+    private final JwtService jwtService;
+    private final RouteService routeService;
     private static final Logger LOGGER = LoggerFactory.getLogger(RouteController.class.getName());
 
 
     @PostMapping("")
-    public @ResponseBody ResponseEntity<?> addRoute(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<?> addRoute(@RequestHeader("Authorization") String authorizationHeader,
                                                     @RequestBody AddRouteDTO addRouteDTO) {
         try {
             LOGGER.info("Add route request received");
@@ -56,7 +55,7 @@ public class RouteController {
 
 
     @DeleteMapping("")
-    public @ResponseBody ResponseEntity<?> removeRoute(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<?> removeRoute(@RequestHeader("Authorization") String authorizationHeader,
                                                        @RequestBody RemoveRoutesDTO routesDTO) {
         try {
             String token = authorizationHeader.substring(7);
@@ -74,7 +73,7 @@ public class RouteController {
     }
 
     @GetMapping("/search")
-    public @ResponseBody ResponseEntity<?> searchRoutes(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<?> searchRoutes(@RequestHeader("Authorization") String authorizationHeader,
                                                         @RequestParam("search") String search,
                                                         @RequestParam("startDate") String startDate,
                                                         @RequestParam("endDate") String endDate,
@@ -98,7 +97,7 @@ public class RouteController {
     }
 
     @GetMapping("/get")
-    public @ResponseBody ResponseEntity<?> getById(@RequestHeader("Authorization") String authorizationHeader,
+    public ResponseEntity<?> getById(@RequestHeader("Authorization") String authorizationHeader,
                                                    @RequestParam String id) {
         try {
             String token = authorizationHeader.substring(7);
@@ -117,7 +116,7 @@ public class RouteController {
     }
 
     @GetMapping("/forCompany/{company}")
-    public @ResponseBody ResponseEntity<?> getRoutesForCompany(
+    public ResponseEntity<?> getRoutesForCompany(
         @RequestHeader("Authorization") String authorizationHeader, @PathVariable String company) {
         try {
             String token = authorizationHeader.substring(7);

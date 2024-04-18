@@ -25,15 +25,15 @@ public class StopEntity {
 
     @Column(name = "location")
     private String location;
-    @Column(name = "\"order\"")
-    private int order;
 
-    @Column(name = "stop")
-    private String stop;
-    @Column(name = "stop_order")
-    private int stopOrder;
+    @Column(name = "address")
+    private String address;
 
-    @ManyToMany(mappedBy = "stopEntities")
-    private Set<RouteEntity> routeEntityList = new HashSet<>();
+    @OneToMany(mappedBy = "fromStop", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}    )
+    private List<LinkEntity> fromLinks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "toStop", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<LinkEntity> toLinks = new ArrayList<>();
+
 
 }

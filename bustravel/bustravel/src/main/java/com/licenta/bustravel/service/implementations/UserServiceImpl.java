@@ -5,9 +5,7 @@ import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,13 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    private Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class.getName());
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void add(UserEntity user) throws Exception {

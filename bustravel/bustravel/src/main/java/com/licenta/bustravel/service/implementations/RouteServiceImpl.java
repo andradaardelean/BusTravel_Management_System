@@ -1,19 +1,20 @@
 package com.licenta.bustravel.service.implementations;
 
-import com.licenta.bustravel.DTO.StopsDTO;
-import com.licenta.bustravel.DTO.converter.RouteMapper;
 import com.licenta.bustravel.controller.RouteController;
-import com.licenta.bustravel.model.*;
+import com.licenta.bustravel.model.LinkEntity;
+import com.licenta.bustravel.model.RouteEntity;
+import com.licenta.bustravel.model.StopEntity;
+import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import com.licenta.bustravel.model.enums.UserType;
-import com.licenta.bustravel.repositories.*;
+import com.licenta.bustravel.repositories.LinkRepository;
+import com.licenta.bustravel.repositories.RouteRepository;
+import com.licenta.bustravel.repositories.StopsRepository;
+import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import org.apache.catalina.User;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,29 +22,29 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 @Service
+@AllArgsConstructor
 public class RouteServiceImpl implements RouteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RouteController.class.getName());
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    StopsRepository stopsRepository;
-    @Autowired
-    CompanyRepository companyRepository;
-    @Autowired
-    private RouteRepository routeRepository;
+
+    private final UserRepository userRepository;
+    private final RouteRepository routeRepository;
+    private final StopsRepository stopsRepository;
+    private final LinkRepository linkRepository;
 
     public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+            .getAuthentication();
         String username = authentication.getName();
         UserEntity userCurrent = userRepository.findByUsername(username)
-                .get();
+            .orElseThrow();
         if (userCurrent.getUserType()
-                .equals(UserType.CLIENT)) {
+            .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
         return userCurrent;
@@ -80,7 +81,7 @@ public class RouteServiceImpl implements RouteService {
                             .totalSeats(route.getTotalSeats())
                             .reccurencyNo(route.getReccurencyNo())
                             .recurrenceType(route.getRecurrenceType())
-                            .stopEntities(route.getStopEntities())
+                            .links(route.getLinks())
                             .companyEntity(route.getCompanyEntity())
                             .build();
                         routes.add(newRoute);
@@ -94,7 +95,8 @@ public class RouteServiceImpl implements RouteService {
         return routes;
     }
 
-    public List<RouteEntity> generateForDayReccurency(RouteEntity route, Integer everyNo, LocalDateTime startDate, LocalDateTime endDate) {
+    public List<RouteEntity> generateForDayReccurency(RouteEntity route, Integer everyNo, LocalDateTime startDate,
+                                                      LocalDateTime endDate) {
         List<RouteEntity> routes = new ArrayList<>();
         do {
             RouteEntity newRoute = RouteEntity.builder()
@@ -107,7 +109,7 @@ public class RouteServiceImpl implements RouteService {
                 .totalSeats(route.getTotalSeats())
                 .reccurencyNo(route.getReccurencyNo())
                 .recurrenceType(route.getRecurrenceType())
-                .stopEntities(route.getStopEntities())
+                .links(route.getLinks())
                 .companyEntity(route.getCompanyEntity())
                 .build();
             routes.add(newRoute);
@@ -132,9 +134,39 @@ public class RouteServiceImpl implements RouteService {
             routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate));
         } else if (recurrenceType == RecurrenceType.WEEK) {
             LOGGER.info("Week recurrence");
-           routes.addAll(generateForWeekReccurency(route, days, everyNo));
-           LOGGER.info("Routes generated: " + routes);
+            routes.addAll(generateForWeekReccurency(route, days, everyNo));
         }
+        return routes;
+    }
+
+    public List<RouteEntity> createLinks(List<RouteEntity> routes, List<StopEntity> stops) {
+        routes.forEach(route -> {
+            for (int i = 0; i < stops.size() - 1; i++) {
+                StopEntity fromStop = stops.get(i);
+                fromStop = stopsRepository.findStop(fromStop.getLocation(),
+                    fromStop.getAddress()) != null ? stopsRepository.findStop(fromStop.getLocation(),
+                    fromStop.getAddress()) : fromStop;
+                StopEntity toStop = stops.get(i + 1);
+                toStop = stopsRepository.findStop(toStop.getLocation(),
+                    toStop.getAddress()) != null ? stopsRepository.findStop(toStop.getLocation(),
+                    toStop.getAddress()) : toStop;
+                LinkEntity link = LinkEntity.builder()
+                    .route(route)
+                    .fromStop(fromStop)
+                    .toStop(toStop)
+                    .distance(100)
+                    .price(10)
+                    .order(i)
+                    .build();
+                route.getLinks()
+                    .add(link);
+                fromStop.getFromLinks()
+                    .add(link);
+                toStop.getToLinks()
+                    .add(link);
+
+            }
+        });
         return routes;
     }
 
@@ -142,9 +174,9 @@ public class RouteServiceImpl implements RouteService {
     public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days) throws Exception {
         try {
             UserEntity user = validateUserType();
-            stops.forEach(route::addStop);
             route.setCompanyEntity(user.getCompanyEntity());
             List<RouteEntity> routes = generateRoutes(route, days);
+            routes = createLinks(routes, stops);
             routeRepository.saveAll(routes);
         } catch (Exception ex) {
             throw new Exception("Add failed!" + ex.getMessage());
@@ -159,12 +191,12 @@ public class RouteServiceImpl implements RouteService {
     @Override
     public void modify(RouteEntity routeEntity, List<StopEntity> stops) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
+            .getAuthentication();
         String username = authentication.getName();
         UserEntity userCurrent = userRepository.findByUsername(username)
-                .get();
+            .orElseThrow();
         if (userCurrent.getUserType()
-                .equals(UserType.CLIENT)) {
+            .equals(UserType.CLIENT)) {
             throw new Exception("Not allowed.");
         }
 
@@ -181,7 +213,7 @@ public class RouteServiceImpl implements RouteService {
         LocalDateTime currentEnd = routeEntity.getEndDateTime();
         do {
             RouteEntity routeEntity1 = routeRepository.findRoute(currentStart, currentEnd,
-                    routeEntity.getStartLocation(), routeEntity.getEndLocation());
+                routeEntity.getStartLocation(), routeEntity.getEndLocation());
             if (routeEntity1 == null) {
                 throw new Exception("Route entity does not exist!");
             }
@@ -202,7 +234,7 @@ public class RouteServiceImpl implements RouteService {
     public void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception {
         validateUserType();
         RouteEntity routeToRemove = routeRepository.findRoute(routeEntity.getStartDateTime(),
-                routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
+            routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
         if (routeToRemove == null) {
             throw new Exception("Route not found!");
         }
@@ -239,28 +271,37 @@ public class RouteServiceImpl implements RouteService {
 
         Predicate<RouteEntity> filterPredicate = route -> true;
         if (!search.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getStartLocation().contains(search) || route.getEndLocation().contains(search));
+            filterPredicate = filterPredicate.and(route -> route.getStartLocation()
+                .contains(search) || route.getEndLocation()
+                .contains(search));
         }
         if (startDateParsed != null) {
-            filterPredicate = filterPredicate.and(route -> route.getStartDateTime().toLocalDate().isEqual(startDateParsed));
+            filterPredicate = filterPredicate.and(route -> route.getStartDateTime()
+                .toLocalDate()
+                .isEqual(startDateParsed));
         }
         if (endDateParsed != null) {
-            filterPredicate = filterPredicate.and(route -> route.getEndDateTime().toLocalDate().isEqual(endDateParsed));
+            filterPredicate = filterPredicate.and(route -> route.getEndDateTime()
+                .toLocalDate()
+                .isEqual(endDateParsed));
         }
         if (!startLocation.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getStartLocation().equals(startLocation));
+            filterPredicate = filterPredicate.and(route -> route.getStartLocation()
+                .equals(startLocation));
         }
         if (!endLocation.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getEndLocation().equals(endLocation));
+            filterPredicate = filterPredicate.and(route -> route.getEndLocation()
+                .equals(endLocation));
         }
         if (passengers > 0) {
             filterPredicate = filterPredicate.and(route -> route.getAvailableSeats() >= passengers);
         }
 
         // Apply filter predicate
-        foundRoutes = routeRepository.findAll().stream()
-                .filter(filterPredicate)
-                .toList();
+        foundRoutes = routeRepository.findAll()
+            .stream()
+            .filter(filterPredicate)
+            .toList();
 
         return foundRoutes;
     }

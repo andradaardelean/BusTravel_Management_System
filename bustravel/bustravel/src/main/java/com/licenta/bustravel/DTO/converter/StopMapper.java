@@ -3,26 +3,23 @@ package com.licenta.bustravel.DTO.converter;
 import com.licenta.bustravel.DTO.StopsDTO;
 import com.licenta.bustravel.model.StopEntity;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StopMapper {
     public static StopsDTO toDTO(StopEntity stop) {
         return StopsDTO.builder()
                 .location(stop.getLocation())
-                .order(stop.getOrder())
-                .stop(stop.getStop())
-                .stopOrder(stop.getStopOrder())
+                .address(stop.getAddress())
                 .build();
     }
 
     public static StopEntity toModel(StopsDTO stop) {
         return StopEntity.builder()
                 .location(stop.getLocation())
-                .order(stop.getOrder())
-                .stop(stop.getStop())
-                .stopOrder(stop.getStopOrder())
-                .routeEntityList(new HashSet<>())
+                .address(stop.getAddress())
+                .fromLinks(new ArrayList<>())
+                .toLinks(new ArrayList<>())
                 .build();
     }
 
