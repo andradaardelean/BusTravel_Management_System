@@ -1,19 +1,19 @@
 package com.licenta.bustravel;
 
 import com.licenta.bustravel.errorhandling.ErrorHandler;
-import com.licenta.bustravel.errorhandling.MyFilter;
-import com.licenta.bustravel.errorhandling.MyFormatter;
+import com.licenta.bustravel.service.utils.DistanceMatrix;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.*;
 
 @SpringBootApplication
 public class BustravelApplication {
 	static Logger logger = Logger.getLogger(BustravelApplication.class.getName());
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
 		SpringApplication.run(BustravelApplication.class, args);
 		try {
@@ -21,6 +21,9 @@ public class BustravelApplication {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		DistanceMatrix map = new DistanceMatrix();
+		map.parseData(map.getData("Cluj-Napoca", "Oradea"));
 
 		logger.setLevel(Level.FINE);
 		logger.addHandler(new ConsoleHandler());
