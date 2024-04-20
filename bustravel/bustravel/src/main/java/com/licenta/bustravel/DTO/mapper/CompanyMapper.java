@@ -1,4 +1,4 @@
-package com.licenta.bustravel.DTO.converter;
+package com.licenta.bustravel.DTO.mapper;
 
 import com.licenta.bustravel.DTO.CompanyDTO;
 import com.licenta.bustravel.model.CompanyEntity;

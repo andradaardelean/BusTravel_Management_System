@@ -1,8 +1,8 @@
 package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.*;
-import com.licenta.bustravel.DTO.converter.RouteMapper;
-import com.licenta.bustravel.DTO.converter.StopMapper;
+import com.licenta.bustravel.DTO.mapper.RouteMapper;
+import com.licenta.bustravel.DTO.mapper.StopMapper;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.StopEntity;
@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -86,9 +87,13 @@ public class RouteController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            List<RouteEntity> routeEntities = routeService.search(search, startDate, endDate, startLocation,
+            List<List<StopEntity>> allPaths = routeService.search(search, startDate, endDate, startLocation,
                 endLocation, passangersNo);
-            List<RouteDTO> result = RouteMapper.toDTOList(routeEntities);
+            List<List<StopsDTO>> result = new ArrayList<>();
+            for (List<StopEntity> path : allPaths) {
+                var stopsDTO = StopMapper.toDTOlist(path);
+                result.add(stopsDTO);
+            }
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

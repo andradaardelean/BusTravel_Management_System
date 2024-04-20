@@ -12,6 +12,9 @@ import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
+import com.licenta.bustravel.service.utils.Graph;
+import com.licenta.bustravel.service.utils.Node;
+import com.licenta.bustravel.service.utils.PathCalculator;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +38,6 @@ public class RouteServiceImpl implements RouteService {
     private final UserRepository userRepository;
     private final RouteRepository routeRepository;
     private final StopsRepository stopsRepository;
-    private final LinkRepository linkRepository;
 
     public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -261,7 +263,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
 
-    public List<RouteEntity> search(String search, String startDate, String endDate, String startLocation,
+    public List<List<StopEntity>> search(String search, String startDate, String endDate, String startLocation,
                                     String endLocation, String passengersNo) {
         List<RouteEntity> foundRoutes;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -270,11 +272,6 @@ public class RouteServiceImpl implements RouteService {
         int passengers = passengersNo.equals("null") ? 0 : Integer.parseInt(passengersNo);
 
         Predicate<RouteEntity> filterPredicate = route -> true;
-        if (!search.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getStartLocation()
-                .contains(search) || route.getEndLocation()
-                .contains(search));
-        }
         if (startDateParsed != null) {
             filterPredicate = filterPredicate.and(route -> route.getStartDateTime()
                 .toLocalDate()
@@ -285,16 +282,13 @@ public class RouteServiceImpl implements RouteService {
                 .toLocalDate()
                 .isEqual(endDateParsed));
         }
-        if (!startLocation.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getStartLocation()
-                .equals(startLocation));
-        }
-        if (!endLocation.equals("null")) {
-            filterPredicate = filterPredicate.and(route -> route.getEndLocation()
-                .equals(endLocation));
-        }
         if (passengers > 0) {
             filterPredicate = filterPredicate.and(route -> route.getAvailableSeats() >= passengers);
+        }
+        if (!search.equals("null")) {
+            filterPredicate = filterPredicate.and(route -> route.getStartLocation()
+                .contains(search) || route.getEndLocation()
+                .contains(search));
         }
 
         // Apply filter predicate
@@ -303,12 +297,88 @@ public class RouteServiceImpl implements RouteService {
             .filter(filterPredicate)
             .toList();
 
-        return foundRoutes;
+        return getAllPaths(foundRoutes, startLocation, endLocation);
     }
+
+    public List<List<StopEntity>> getAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) {
+        List<List<Node>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
+        List<List<StopEntity>> allPathsStops = new ArrayList<>();
+        for (List<Node> path : allPaths) {
+            List<StopEntity> stops = new ArrayList<>();
+            for (Node node : path) {
+                StopEntity stop = stopsRepository.findById(Integer.parseInt(node.getName())).orElseThrow();
+                stops.add(stop);
+            }
+            allPathsStops.add(stops);
+        }
+        return allPathsStops;
+    }
+
+    public List<List<Node>> calculateAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) {
+        Graph graph = buildGraph(routes);
+        List<List<Node>> allPaths = new ArrayList<>();
+
+        if (startLocation.equals("null")) {
+            startLocation = routes.stream()
+                .map(RouteEntity::getStartLocation)
+                .findFirst()
+                .orElse(null);
+        }
+
+        if (endLocation.equals("null")) {
+            endLocation = routes.stream()
+                .map(RouteEntity::getEndLocation)
+                .findFirst()
+                .orElse(null);
+        }
+
+        StopEntity startLocationEntity = stopsRepository.findStopByLocation(startLocation);
+        StopEntity endLocationEntity = stopsRepository.findStopByLocation(endLocation);
+        if (startLocationEntity != null && endLocationEntity != null) {
+            Node startNode = graph.getNodeByName(String.valueOf(startLocationEntity.getId()));
+            Node endNode = graph.getNodeByName(String.valueOf(endLocationEntity.getId()));
+            if (endNode == null) {
+                endNode = new Node(String.valueOf(endLocationEntity.getId()));
+                graph.addNode(endNode);
+            }
+            allPaths = PathCalculator.findAllPaths(graph, startNode, endNode);
+        }
+
+        return allPaths;
+    }
+
+    private Graph buildGraph(List<RouteEntity> routes) {
+        Graph graph = new Graph();
+
+        for (RouteEntity route : routes) {
+            for (LinkEntity link : route.getLinks()) {
+                String fromNodeId = String.valueOf(link.getFromStop().getId());
+                String toNodeId = String.valueOf(link.getToStop().getId());
+
+                Node fromNode = graph.getNodeByName(fromNodeId);
+                if (fromNode == null) {
+                    fromNode = new Node(fromNodeId);
+                    graph.addNode(fromNode);
+                }
+
+                Node toNode = graph.getNodeByName(toNodeId);
+                if (toNode == null) {
+                    toNode = new Node(toNodeId);
+                    graph.addNode(toNode);
+                }
+
+                fromNode.addDestination(toNode, link.getDistance());
+            }
+        }
+
+        return graph;
+    }
+
 
     @Override
     public List<RouteEntity> getRoutesForCompany(String company) throws Exception {
         return routeRepository.findByCompany(company);
     }
+
 
 }

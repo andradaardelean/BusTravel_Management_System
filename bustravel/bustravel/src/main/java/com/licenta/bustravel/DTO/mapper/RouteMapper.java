@@ -1,4 +1,4 @@
-package com.licenta.bustravel.DTO.converter;
+package com.licenta.bustravel.DTO.mapper;
 
 import com.licenta.bustravel.DTO.RouteDTO;
 import com.licenta.bustravel.model.RouteEntity;
@@ -7,7 +7,6 @@ import com.licenta.bustravel.model.enums.RecurrenceType;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class RouteMapper {

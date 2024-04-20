@@ -1,7 +1,7 @@
 package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.BookingDTO;
-import com.licenta.bustravel.DTO.converter.BookingMapper;
+import com.licenta.bustravel.DTO.mapper.BookingMapper;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.RouteEntity;

@@ -1,7 +1,7 @@
 package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.CompanyDTO;
-import com.licenta.bustravel.DTO.converter.CompanyMapper;
+import com.licenta.bustravel.DTO.mapper.CompanyMapper;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.service.CompanyService;

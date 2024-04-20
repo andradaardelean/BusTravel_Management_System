@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface StopsRepository extends JpaRepository<StopEntity, Integer> {
     @Query("select stop from StopEntity stop where stop.location=:location and stop.address=:address")
     StopEntity findStop(String  location, String address);
+
+    StopEntity findStopByLocation(String location);
 }
