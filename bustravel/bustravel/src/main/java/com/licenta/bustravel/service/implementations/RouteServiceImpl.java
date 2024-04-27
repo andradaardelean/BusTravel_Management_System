@@ -174,7 +174,7 @@ public class RouteServiceImpl implements RouteService {
                     .distanceText(distanceMap.get("distanceText"))
                     .duration(Long.parseLong(distanceMap.get("durationValue")))
                     .durationText(distanceMap.get("durationText"))
-                    .price(10)
+                    .price(10.0)
                     .order(i)
                     .build();
                 route.getLinks()
@@ -403,6 +403,25 @@ public class RouteServiceImpl implements RouteService {
     @Override
     public List<RouteEntity> getRoutesForCompany(String company) throws Exception {
         return routeRepository.findByCompany(company);
+    }
+
+    public Map<String, LocalDateTime> getLinksTime(LinkEntity link){
+        Map<String, LocalDateTime> timeMap = new HashMap<>();
+        List<LinkEntity> links = linkRepository.findAllByRouteIdOrderByOrder(link.getRoute()
+            .getId());
+        LocalDateTime currentTime = link.getRoute()
+            .getStartDateTime();
+        for (LinkEntity linkEntity : links) {
+            if(linkEntity.getFromStop() == link.getFromStop()){
+                timeMap.put("from", currentTime);
+            }
+            currentTime = currentTime.plusMinutes(linkEntity.getDuration());
+            if(linkEntity.getToStop() == link.getToStop()){
+                timeMap.put("to", currentTime);
+                break;
+            }
+        }
+        return timeMap;
     }
 
 

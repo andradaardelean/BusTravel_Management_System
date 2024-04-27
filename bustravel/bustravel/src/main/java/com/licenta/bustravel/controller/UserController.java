@@ -131,5 +131,18 @@ public class UserController {
         return ResponseEntity.ok("User modified successfully!");
     }
 
-
+    @GetMapping("{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
+        try {
+            UserEntity user = userService.getByUsername(username);
+            UserDTO userDTO = new UserDTO(user.getUsername(), user.getName(), user.getPhone(), user.getEmail(),
+                    user.getUserType()
+                            .toString(), user.getCompanyEntity() != null ? user.getCompanyEntity()
+                    .getName() : "");
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Get user by username does not work. " + e.getMessage());
+        }
+    }
 }

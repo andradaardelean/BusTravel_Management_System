@@ -48,7 +48,7 @@ public class LinkEntity {
     @Column(name = "duration_text")
     private String durationText;
     @Column(name = "price")
-    private Integer price;
+    private Double price;
     @Column(name = "order_index")
     private Integer order;
 

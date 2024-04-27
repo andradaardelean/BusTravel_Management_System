@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,6 +40,9 @@ public class BookingEntity {
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private BookingType type;
+
+    @OneToMany(mappedBy = "booking", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<BookingLinkEntity> bookingLinks;
 
     @Override
     public String toString() {

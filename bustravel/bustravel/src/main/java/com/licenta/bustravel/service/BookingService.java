@@ -1,6 +1,7 @@
 package com.licenta.bustravel.service;
 
 import com.licenta.bustravel.model.BookingEntity;
+import com.licenta.bustravel.model.BookingLinkEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,5 +15,6 @@ public interface BookingService {
     List<BookingEntity> getBookingsForUser(String username) throws Exception;
 
     List<BookingEntity> getBookingsForRoute(int routeId) throws Exception;
+    List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) throws Exception;
 
 }

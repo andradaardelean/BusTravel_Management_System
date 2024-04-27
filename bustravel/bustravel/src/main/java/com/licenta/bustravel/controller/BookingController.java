@@ -1,6 +1,7 @@
 package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.BookingDTO;
+import com.licenta.bustravel.DTO.BookingLinkDTO;
 import com.licenta.bustravel.DTO.mapper.BookingMapper;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.BookingEntity;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @Controller
@@ -91,6 +94,25 @@ public class BookingController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(null);
             return new ResponseEntity<>(BookingMapper.toDTOList(bookingService.getBookingsForRoute(routeid)), HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public @ResponseBody ResponseEntity<?> getLinksByBookingId(@RequestHeader("Authorization") String authorization,
+                                                          @PathVariable int id) {
+        try {
+            String token = authorization.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(null);
+            List<BookingLinkDTO> links = bookingService.getBookingLinksForBooking(id)
+                    .stream()
+                    .map(BookingMapper::toBookingLinkDTO)
+                    .toList();
+            return new ResponseEntity<>(links, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);

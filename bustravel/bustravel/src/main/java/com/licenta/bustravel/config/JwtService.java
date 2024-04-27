@@ -12,7 +12,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,34 +27,43 @@ public class JwtService {
 
     private Logger LOGGER = LoggerFactory.getLogger(JwtService.class.getName());
 
-    public void invalidateToken(String token){
+    public void invalidateToken(String token) {
         invalidatedTokens.add(token);
     }
-    public boolean isTokenValid(String token){
+
+    public boolean isTokenValid(String token) {
         return !invalidatedTokens.contains(token);
     }
-    public String generateToken(String username, Collection<? extends GrantedAuthority> authorities){
+
+    public String generateToken(String username, Collection<? extends GrantedAuthority> authorities) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
+        claims.put("roles", authorities.stream()
+            .map(GrantedAuthority::getAuthority)
+            .toList());
+
         return createToken(claims, username);
     }
-    private String createToken(Map<String, Object> claims, String username){
+
+    private String createToken(Map<String, Object> claims, String username) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24))
-                .signWith(getSignedKey(), SignatureAlgorithm.HS256).compact();
+            .setClaims(claims)
+            .setSubject(username)
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+            .signWith(getSignedKey(), SignatureAlgorithm.HS256)
+            .compact();
     }
 
-    private Key getSignedKey(){
+    private Key getSignedKey() {
         byte[] keyBytes = Decoders.BASE64.decode("38792F423F4528482B4B6250655368566D597133743677397A24432646294A40");
         return Keys.hmacShaKeyFor(keyBytes);
     }
-    private Boolean isTokenExpired(String token){
+
+    private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-    public Boolean validateToken(String token, UserDetails userDTO){
+
+    public Boolean validateToken(String token, UserDetails userDTO) {
         final String username = extractUsername(token);
 //        final Collection<? extends GrantedAuthority> roles = userDTO.getAuthorities();
 //        final List<String> tokenRoles = extractClaim(token, claims -> claims.get("roles", List.class));
@@ -58,25 +72,25 @@ public class JwtService {
         return username.equals(userDTO.getUsername()) && !isTokenExpired(token);
     }
 
-    public String extractUsername(String token){
+    public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Date extractExpiration(String token){
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public <T> T extractClaim(String token, Function<Claims,T> claimsTFunction){
+    public <T> T extractClaim(String token, Function<Claims, T> claimsTFunction) {
         Claims claims = extractAllClaims(token);
         return claimsTFunction.apply(claims);
     }
 
-    private Claims extractAllClaims(String token){
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(getSignedKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+            .setSigningKey(getSignedKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
     }
 
 }

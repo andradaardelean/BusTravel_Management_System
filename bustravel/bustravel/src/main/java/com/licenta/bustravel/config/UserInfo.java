@@ -22,7 +22,6 @@ public class UserInfo implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorityList;
     }
-
     @Override
     public String getPassword() {
         return password;
