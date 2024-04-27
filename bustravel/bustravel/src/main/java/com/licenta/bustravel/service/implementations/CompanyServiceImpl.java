@@ -102,12 +102,12 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void modify(CompanyEntity companyEntity) throws Exception {
-
+        companyRepository.save(companyEntity);
     }
 
     @Override
     public void delete(CompanyEntity companyEntity) throws Exception {
-
+        companyRepository.delete(companyEntity);
     }
 
     @Override

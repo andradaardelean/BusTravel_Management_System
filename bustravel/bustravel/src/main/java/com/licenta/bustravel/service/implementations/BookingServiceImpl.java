@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -60,6 +62,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void delete(BookingEntity booking) throws Exception {
         try {
+            List<BookingLinkEntity> bookingLinks = bookingLinkRepository.findAllByBookingId(booking.getId());
+            Set<RouteEntity> uniqueRoutes = bookingLinks.stream()
+                .map(bookingLink -> bookingLink.getLink()
+                    .getRoute())
+                .collect(Collectors.toSet());
+            uniqueRoutes.forEach(
+                route -> route.setAvailableSeats(route.getAvailableSeats() - booking.getPassegersNo()));
             bookingRepository.delete(booking);
             System.out.println("Deleted booking: " + booking);
         } catch (Exception ex) {
@@ -86,13 +95,19 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingLinkEntity> getBookingLinksForBooking(int bookingId){
+    public List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) {
         return bookingLinkRepository.findAllByBookingId(bookingId)
             .stream()
-            .peek(bookingLink -> {
+            .map(bookingLink -> {
                 Map<String, LocalDateTime> timeMap = routeService.getLinksTime(bookingLink.getLink());
                 bookingLink.setStartTime(timeMap.get("start"));
                 bookingLink.setEndTime(timeMap.get("end"));
-            }).toList();
+                return bookingLink;
+            })
+            .toList();
     }
 }
+
+
+
+

@@ -118,4 +118,22 @@ public class BookingController {
                     .body(null);
         }
     }
+
+    @DeleteMapping("/{id}")
+    public @ResponseBody ResponseEntity<?> deleteBooking(@RequestHeader("Authorization") String authorization,
+                                                         @PathVariable int id) {
+        try {
+            String token = authorization.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Token already invalidated!");
+            BookingEntity booking = bookingService.getById(id)
+                    .orElseThrow(() -> new Exception("Booking not found!"));
+            bookingService.delete(booking);
+            return ResponseEntity.ok("Booking deleted successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Delete booking does not work. " + e.getMessage());
+        }
+    }
 }

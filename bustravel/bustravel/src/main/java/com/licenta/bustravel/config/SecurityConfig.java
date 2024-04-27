@@ -50,16 +50,26 @@ public class SecurityConfig {
 
     @Bean // configurarea filtrelor de securitate
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity
-                .csrf(csrf -> csrf.disable()) //Dezactivează protecția împotriva atacurilor CSRF (Cross-Site Request Forgery).
-                .cors(cors -> cors.disable()) //  Dezactivează configurarea predefinită CORS pentru a permite cereri încrucișate din orice sursă.
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // modificam politica de gestionare a sesiunilor in stateless, pt ca autentificarea se bazeaza pe token-uri JWT nu pe sesiuni
-                .authenticationProvider(authenticationProvider()) //Specifică provider-ul de autentificare configurat mai devreme.
-                .addFilterBefore(new CorsFilter(), ChannelProcessingFilter.class)
-                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class) //Adaugă JwtAuthFilter înainte de UsernamePasswordAuthenticationFilter pentru a procesa token-urile JWT înainte de autentificarea bazată pe username și parolă.
-                .build();
+        return httpSecurity.csrf(
+                csrf -> csrf.disable()) //Dezactivează protecția împotriva atacurilor CSRF (Cross-Site Request Forgery).
+            .cors(
+                cors -> cors.disable()) //  Dezactivează configurarea predefinită CORS pentru a permite cereri
+            // încrucișate din orice sursă.
+            .sessionManagement(sm -> sm.sessionCreationPolicy(
+                SessionCreationPolicy.STATELESS)) // modificam politica de gestionare a sesiunilor in stateless, pt
+            // ca autentificarea se bazeaza pe token-uri JWT nu pe sesiuni
+            .authenticationProvider(
+                authenticationProvider()) //Specifică provider-ul de autentificare configurat mai devreme.
+            .addFilterBefore(new CorsFilter(), ChannelProcessingFilter.class)
+            .addFilterBefore(authFilter,
+                UsernamePasswordAuthenticationFilter.class) //Adaugă JwtAuthFilter înainte de
+            // UsernamePasswordAuthenticationFilter pentru a procesa token-urile JWT înainte de autentificarea bazată
+            // pe username și parolă.
+            .build();
     }
-    // Un bean care furnizează AuthenticationManager configurat. Este necesar pentru a permite injectarea AuthenticationManager în alte componente ale aplicației.
+
+    // Un bean care furnizează AuthenticationManager configurat. Este necesar pentru a permite injectarea
+    // AuthenticationManager în alte componente ale aplicației.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -70,7 +80,10 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token","Access-Control-Allow-Headers", "authorization, content-type, xsrf-token, access-control-allow-origin, access-control-allow-credentials"));
+        configuration.setAllowedHeaders(
+            Arrays.asList("authorization", "content-type", "x-auth-token", "Access-Control-Allow-Headers",
+                "authorization, content-type, xsrf-token, access-control-allow-origin, " +
+                    "access-control-allow-credentials"));
         configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

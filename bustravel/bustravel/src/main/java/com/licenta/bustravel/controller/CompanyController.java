@@ -22,7 +22,7 @@ public class CompanyController {
     private JwtService jwtService;
 
     @PostMapping("/addCompany")
-    public @ResponseBody ResponseEntity<?> addCompany(@RequestHeader("Authorization") String authorizationHeader, @RequestBody CompanyDTO companyDTO){
+    public ResponseEntity<?> addCompany(@RequestHeader("Authorization") String authorizationHeader, @RequestBody CompanyDTO companyDTO){
         try{
             String token = authorizationHeader.substring(7);
             if(!jwtService.isTokenValid(token)){
@@ -37,7 +37,7 @@ public class CompanyController {
     }
 
     @GetMapping()
-    public @ResponseBody ResponseEntity<?> getCompanies(@RequestHeader("Authorization") String authorizationHeader){
+    public ResponseEntity<?> getCompanies(@RequestHeader("Authorization") String authorizationHeader){
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
@@ -50,5 +50,48 @@ public class CompanyController {
         }
     }
 
+    @GetMapping("/{name}")
+    public ResponseEntity<?> getCompanyByName(@RequestHeader("Authorization") String authorizationHeader, @PathVariable String name){
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
+            }
+            CompanyDTO result = CompanyMapper.toDTO(companyService.getByName(name));
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid get request!");
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> modifyCompany(@RequestHeader("Authorization") String authorizationHeader, @PathVariable int id, @RequestBody CompanyDTO companyDTO){
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
+            }
+            CompanyEntity companyEntity = new CompanyEntity(id,companyDTO.getName(), companyDTO.getDescription(), companyDTO.getOwnerName(), companyDTO.getOwnerEmail(), companyDTO.getPhone(), null, null);
+            companyService.modify(companyEntity);
+            return ResponseEntity.ok("Company modified succesfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid modify request!");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCompany(@RequestHeader("Authorization") String authorizationHeader, @PathVariable int id){
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
+            }
+            CompanyEntity companyEntity = companyService.getById(id).orElseThrow();
+            companyService.delete(companyEntity);
+            return ResponseEntity.ok("Company deleted succesfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid delete request!");
+        }
+    }
 
 }
