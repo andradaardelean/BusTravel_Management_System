@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -87,12 +89,13 @@ public class RouteController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            List<List<StopEntity>> allPaths = routeService.search(search, startDate, endDate, startLocation,
+            Map<List<StopEntity>, String> allPaths = routeService.search(search, startDate, endDate, startLocation,
                 endLocation, passangersNo);
-            List<List<StopsDTO>> result = new ArrayList<>();
-            for (List<StopEntity> path : allPaths) {
-                var stopsDTO = StopMapper.toDTOlist(path);
-                result.add(stopsDTO);
+            Map<List<StopsDTO>, String> result = new HashMap<>();
+            //
+            for (Map.Entry<List<StopEntity>, String> path : allPaths.entrySet()) {
+                var stopsDTO = StopMapper.toDTOlist(path.getKey());
+                result.put(stopsDTO, path.getValue());
             }
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception ex) {

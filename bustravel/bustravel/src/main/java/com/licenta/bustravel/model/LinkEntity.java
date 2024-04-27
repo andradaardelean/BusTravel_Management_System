@@ -40,7 +40,13 @@ public class LinkEntity {
     private StopEntity toStop;
 
     @Column(name = "distance")
-    private Integer distance;
+    private Long distance;
+    @Column(name = "distance_text")
+    private String distanceText;
+    @Column(name = "duration")
+    private Long duration;
+    @Column(name = "duration_text")
+    private String durationText;
     @Column(name = "price")
     private Integer price;
     @Column(name = "order_index")

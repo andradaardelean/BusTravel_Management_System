@@ -12,6 +12,7 @@ import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
+import com.licenta.bustravel.service.utils.DistanceMatrix;
 import com.licenta.bustravel.service.utils.Graph;
 import com.licenta.bustravel.service.utils.Node;
 import com.licenta.bustravel.service.utils.PathCalculator;
@@ -26,7 +27,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -38,6 +41,7 @@ public class RouteServiceImpl implements RouteService {
     private final UserRepository userRepository;
     private final RouteRepository routeRepository;
     private final StopsRepository stopsRepository;
+    private final LinkRepository linkRepository;
 
     public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -152,11 +156,24 @@ public class RouteServiceImpl implements RouteService {
                 toStop = stopsRepository.findStop(toStop.getLocation(),
                     toStop.getAddress()) != null ? stopsRepository.findStop(toStop.getLocation(),
                     toStop.getAddress()) : toStop;
+                Map<String, String> distanceMap = null;
+                try {
+                    distanceMap = DistanceMatrix.parseData(
+                        DistanceMatrix.getData(fromStop.getLocation(), toStop.getLocation()));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                if (distanceMap == null) {
+                    LOGGER.error("Error while calculating distance between stops");
+                }
                 LinkEntity link = LinkEntity.builder()
                     .route(route)
                     .fromStop(fromStop)
                     .toStop(toStop)
-                    .distance(100)
+                    .distance(Long.parseLong(distanceMap.get("distanceValue")))
+                    .distanceText(distanceMap.get("distanceText"))
+                    .duration(Long.parseLong(distanceMap.get("durationValue")))
+                    .durationText(distanceMap.get("durationText"))
                     .price(10)
                     .order(i)
                     .build();
@@ -262,9 +279,9 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findAll();
     }
 
-
-    public List<List<StopEntity>> search(String search, String startDate, String endDate, String startLocation,
-                                    String endLocation, String passengersNo) {
+    @Override
+    public Map<List<StopEntity>, String> search(String search, String startDate, String endDate, String startLocation,
+                                         String endLocation, String passengersNo) throws Exception {
         List<RouteEntity> foundRoutes;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate startDateParsed = startDate.equals("null") ? null : LocalDate.parse(startDate, dateTimeFormatter);
@@ -300,21 +317,27 @@ public class RouteServiceImpl implements RouteService {
         return getAllPaths(foundRoutes, startLocation, endLocation);
     }
 
-    public List<List<StopEntity>> getAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) {
+    public Map<List<StopEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation,
+                                              String endLocation) throws Exception {
         List<List<Node>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
-        List<List<StopEntity>> allPathsStops = new ArrayList<>();
+        Map<List<StopEntity>, String> allPathsStops = new HashMap<>();
         for (List<Node> path : allPaths) {
             List<StopEntity> stops = new ArrayList<>();
             for (Node node : path) {
-                StopEntity stop = stopsRepository.findById(Integer.parseInt(node.getName())).orElseThrow();
+                StopEntity stop = stopsRepository.findById(Integer.parseInt(node.getName()))
+                    .orElseThrow();
                 stops.add(stop);
             }
-            allPathsStops.add(stops);
+            Map<String, String> distanceMap = DistanceMatrix.parseData(DistanceMatrix.getData(stops.get(0)
+                .getLocation(), stops.get(stops.size() - 1)
+                .getLocation()));
+            allPathsStops.put(stops,distanceMap.get("distanceText") + " " + distanceMap.get("durationText"));
         }
         return allPathsStops;
     }
 
-    public List<List<Node>> calculateAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) {
+    public List<List<Node>> calculateAllPaths(List<RouteEntity> routes, String startLocation,
+                                              String endLocation) throws Exception {
         Graph graph = buildGraph(routes);
         List<List<Node>> allPaths = new ArrayList<>();
 
@@ -347,13 +370,15 @@ public class RouteServiceImpl implements RouteService {
         return allPaths;
     }
 
-    private Graph buildGraph(List<RouteEntity> routes) {
+    private Graph buildGraph(List<RouteEntity> routes) throws Exception {
         Graph graph = new Graph();
 
         for (RouteEntity route : routes) {
             for (LinkEntity link : route.getLinks()) {
-                String fromNodeId = String.valueOf(link.getFromStop().getId());
-                String toNodeId = String.valueOf(link.getToStop().getId());
+                String fromNodeId = String.valueOf(link.getFromStop()
+                    .getId());
+                String toNodeId = String.valueOf(link.getToStop()
+                    .getId());
 
                 Node fromNode = graph.getNodeByName(fromNodeId);
                 if (fromNode == null) {

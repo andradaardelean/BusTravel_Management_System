@@ -12,17 +12,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class DistanceMatrix {
    private static final String API_KEY = "AIzaSyCGicmysd15IkTu4H7JJBV4IG90KWSYp-w";
-   public static float[][] distance;
-   public static float[][] times;
 
    private static final Logger LOGGER = LoggerFactory.getLogger(DistanceMatrix.class);
-
-//    private GeoApiContext context = new GeoApiContext.setApiKey("AIzaSyD5J9QJ6Q");
-
+   
     public static String getData(String source, String destination) throws Exception {
         var url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + source + "&destinations=" + destination + "&key=" + API_KEY;
         var request = HttpRequest.newBuilder().GET().uri(new URI(url)).build();
@@ -33,7 +31,7 @@ public class DistanceMatrix {
         return response;
     }
 
-    public static void parseData(String response) {
+    public static Map<String, String> parseData(String response) {
         JSONParser parser = new JSONParser();
         try {
             JSONObject json = (JSONObject) parser.parse(response);
@@ -43,10 +41,17 @@ public class DistanceMatrix {
             JSONObject element = (JSONObject) elementsArray.get(0);
             JSONObject distance = (JSONObject) element.get("distance");
             JSONObject duration = (JSONObject) element.get("duration");
+            Map<String,String> distanceMap = new HashMap<>();
+            distanceMap.put("distanceText", (String) distance.get("text"));
+            distanceMap.put("durationText", (String) duration.get("text"));
+            distanceMap.put("distanceValue", String.valueOf(distance.get("value")));
+            distanceMap.put("durationValue", String.valueOf(duration.get("value")));
             LOGGER.info("Distance: " + distance.get("text"));
             LOGGER.info("Duration: " + duration.get("text"));
+            return distanceMap;
         } catch (ParseException e) {
             e.printStackTrace();
+            return null;
         }
     }
 }

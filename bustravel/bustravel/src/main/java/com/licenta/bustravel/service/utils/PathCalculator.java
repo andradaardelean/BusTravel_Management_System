@@ -31,7 +31,7 @@ public class PathCalculator {
                 allPaths.add(new LinkedList<>(currentPath));
             }
         } else {
-            for (Map.Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
+            for (Map.Entry<Node, Long> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
                 Node nextNode = adjacencyPair.getKey();
                 if (!visited.contains(nextNode)) {
                     currentPath.add(nextNode);
@@ -59,7 +59,7 @@ public class PathCalculator {
     }
 
     public static Graph calculateShortestPathFromSource(Graph graph, Node source){
-        source.setDistance(0);
+        source.setDistance(Long.valueOf(0));
         Set<Node> settledNodes = new HashSet<>();
         Set<Node> unsettledNodes = new HashSet<>();
 
@@ -68,9 +68,9 @@ public class PathCalculator {
         while(unsettledNodes.size() != 0){
             Node current = getLowestDistanceNode(unsettledNodes);
             unsettledNodes.remove(current);
-            for(Map.Entry< Node, Integer> adjacencyPair: current.getAdjacentNodes().entrySet()){
+            for(Map.Entry< Node, Long> adjacencyPair: current.getAdjacentNodes().entrySet()){
                 Node adjacentNode = adjacencyPair.getKey();
-                Integer edgeWeight = adjacencyPair.getValue();
+                Long edgeWeight = adjacencyPair.getValue();
                 if(!settledNodes.contains(adjacentNode)){
                     calculateMinimumDistance(adjacentNode, edgeWeight, current);
                     unsettledNodes.add(adjacentNode);
@@ -83,9 +83,9 @@ public class PathCalculator {
 
     private static Node getLowestDistanceNode(Set < Node > unsettledNodes) {
         Node lowestDistanceNode = null;
-        int lowestDistance = Integer.MAX_VALUE;
+        long lowestDistance = Long.MAX_VALUE;
         for (Node node: unsettledNodes) {
-            int nodeDistance = node.getDistance();
+            long nodeDistance = node.getDistance();
             if (nodeDistance < lowestDistance) {
                 lowestDistance = nodeDistance;
                 lowestDistanceNode = node;
@@ -95,8 +95,8 @@ public class PathCalculator {
     }
 
     private static void calculateMinimumDistance(Node evaluationNode,
-                                                 Integer edgeWeigh, Node sourceNode) {
-        Integer sourceDistance = sourceNode.getDistance();
+                                                 Long edgeWeigh, Node sourceNode) {
+        Long sourceDistance = sourceNode.getDistance();
         if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
             evaluationNode.setDistance(sourceDistance + edgeWeigh);
             LinkedList<Node> shortestPath = new LinkedList<>(sourceNode.getShortestPath());

@@ -12,9 +12,9 @@ import java.util.Map;
 public class Node {
     String name;
     private List<Node> shortestPath = new LinkedList<>();
-    private Integer distance = Integer.MAX_VALUE;
-    private Map<Node, Integer> adjacentNodes = new HashMap<>();
-    public void addDestination(Node destination, int distance) {
+    private Long distance = Long.MAX_VALUE;
+    private Map<Node, Long> adjacentNodes = new HashMap<>();
+    public void addDestination(Node destination, long distance) {
         adjacentNodes.put(destination, distance);
     }
 

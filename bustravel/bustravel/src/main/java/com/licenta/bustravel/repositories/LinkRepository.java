@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LinkRepository extends JpaRepository<LinkEntity, Integer> {
+    LinkEntity findByFromStopIdAndToStopId(int fromStopId, int toStopId);
 }
