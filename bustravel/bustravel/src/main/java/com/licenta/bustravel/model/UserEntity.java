@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.licenta.bustravel.model.enums.UserType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -36,11 +38,8 @@ public class UserEntity {
     private UserType userType;
 
     @ManyToOne
-    @JsonIgnore
     @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
-
-
     @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<BookingEntity> bookingList = new ArrayList<>();
 

@@ -37,8 +37,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserEntity getByUsername(String username) throws Exception {
-        return userRepository.getByUsername(username);
+    public UserEntity getByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow();
     }
 
     @Override
@@ -46,9 +46,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         UserEntity currentUser = userRepository.findByUsername(username).orElseThrow();
-        UserEntity userToModify = userRepository.getByUsername(
-                user.getUsername()) == null ? userRepository.getByUsername(
-                currentUser.getUsername()) : userRepository.getByUsername(user.getUsername());
+        UserEntity userToModify = userRepository.findByUsername(user.getUsername()).orElse(null);
         if (currentUser.getUserType() == UserType.ADMIN || currentUser.getUsername()
                 .equals(user.getUsername()) || userToModify.getCompanyEntity()
                 .equals(currentUser.getCompanyEntity())) {
@@ -63,10 +61,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(UserEntity user) throws Exception {
-        if (userRepository.getByUsername(user.getUsername()) != null) {
-            userRepository.delete(user);
-        } else
-            throw new Exception("The user you want to delete can not be found!");
+        userRepository.delete(userRepository.findByUsername(user.getUsername()).orElseThrow());
+
     }
 
     @Override

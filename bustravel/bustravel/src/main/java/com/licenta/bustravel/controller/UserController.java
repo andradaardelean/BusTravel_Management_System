@@ -11,6 +11,7 @@ import com.licenta.bustravel.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,10 +38,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 public class UserController {
+    @Autowired
     private UserService userService;
-
+    @Autowired
     private JwtService jwtService;
-
+    @Autowired
     private AuthenticationManager authenticationManager;
 
     private Logger LOGGER = LoggerFactory.getLogger(UserController.class);
