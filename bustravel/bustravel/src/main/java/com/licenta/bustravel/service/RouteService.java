@@ -1,5 +1,6 @@
 package com.licenta.bustravel.service;
 
+import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.model.StopEntity;
 import com.licenta.bustravel.model.RouteEntity;
 
@@ -13,6 +14,6 @@ public interface RouteService {
     void modify(RouteEntity routeEntity, List<StopEntity> intermediateLocations) throws Exception;
     void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception;
     List<RouteEntity> getAll() throws Exception;
-    Map<List<StopEntity>, String> search(String search, String startDate, String endDate, String startLocation, String endLocation, String passangersNo) throws Exception;
+    Map<List<LinkEntity>, String> search(String search, String startDate, String endDate, String startLocation, String endLocation, String passangersNo) throws Exception;
     List<RouteEntity> getRoutesForCompany(String company) throws Exception;
 }

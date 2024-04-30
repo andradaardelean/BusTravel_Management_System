@@ -1,9 +1,15 @@
 package com.licenta.bustravel.controller;
 
-import com.licenta.bustravel.DTO.*;
+import com.licenta.bustravel.DTO.AddRouteDTO;
+import com.licenta.bustravel.DTO.LinkDTO;
+import com.licenta.bustravel.DTO.RemoveRoutesDTO;
+import com.licenta.bustravel.DTO.RouteDTO;
+import com.licenta.bustravel.DTO.SearchResultDTO;
+import com.licenta.bustravel.DTO.mapper.LinkMapper;
 import com.licenta.bustravel.DTO.mapper.RouteMapper;
 import com.licenta.bustravel.DTO.mapper.StopMapper;
 import com.licenta.bustravel.config.JwtService;
+import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.StopEntity;
 import com.licenta.bustravel.model.enums.RecurrenceType;
@@ -13,13 +19,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -34,7 +48,7 @@ public class RouteController {
 
     @PostMapping("")
     public ResponseEntity<?> addRoute(@RequestHeader("Authorization") String authorizationHeader,
-                                                    @RequestBody AddRouteDTO addRouteDTO) {
+                                      @RequestBody AddRouteDTO addRouteDTO) {
         try {
             LOGGER.info("Add route request received");
             String token = authorizationHeader.substring(7);
@@ -42,12 +56,14 @@ public class RouteController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            LOGGER.info( "Token is valid");
+            LOGGER.info("Token is valid");
             List<StopEntity> stopEntities = StopMapper.toModelList(addRouteDTO.getStopsDTOList());
-            RouteEntity routeEntity = RouteMapper.toModel(addRouteDTO.getRoutesDTO(), addRouteDTO.getRecurrenceDTO().getEveryNo(),
-                addRouteDTO.getRecurrenceDTO().getRecurrenceType());
+            RouteEntity routeEntity = RouteMapper.toModel(addRouteDTO.getRoutesDTO(), addRouteDTO.getRecurrenceDTO()
+                .getEveryNo(), addRouteDTO.getRecurrenceDTO()
+                .getRecurrenceType());
             LOGGER.info("Route and stops mapped");
-            routeService.add(routeEntity, stopEntities, addRouteDTO.getRecurrenceDTO().getDays());
+            routeService.add(routeEntity, stopEntities, addRouteDTO.getRecurrenceDTO()
+                .getDays());
             LOGGER.info("Route added successfully");
             return ResponseEntity.ok("Route added successfully!");
         } catch (Exception ex) {
@@ -59,7 +75,7 @@ public class RouteController {
 
     @DeleteMapping("")
     public ResponseEntity<?> removeRoute(@RequestHeader("Authorization") String authorizationHeader,
-                                                       @RequestBody RemoveRoutesDTO routesDTO) {
+                                         @RequestBody RemoveRoutesDTO routesDTO) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
@@ -77,36 +93,53 @@ public class RouteController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchRoutes(@RequestHeader("Authorization") String authorizationHeader,
-                                                        @RequestParam("search") String search,
-                                                        @RequestParam("startDate") String startDate,
-                                                        @RequestParam("endDate") String endDate,
-                                                        @RequestParam("startLocation") String startLocation,
-                                                        @RequestParam("endLocation") String endLocation,
-                                                        @RequestParam("passengersNo") String passangersNo) {
+                                          @RequestParam(value = "search", required = false) String search,
+                                          @RequestParam(value = "startDate", required = false) String startDate,
+                                          @RequestParam(value = "endDate", required = false) String endDate,
+                                          @RequestParam(value = "startLocation", required = false) String startLocation,
+                                          @RequestParam(value = "endLocation", required = false) String endLocation,
+                                          @RequestParam(value = "passengersNo", required = false) String passangersNo) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            Map<List<StopEntity>, String> allPaths = routeService.search(search, startDate, endDate, startLocation,
+            Map<List<LinkEntity>, String> allPaths = routeService.search(search, startDate, endDate, startLocation,
                 endLocation, passangersNo);
-            Map<List<StopsDTO>, String> result = new HashMap<>();
-            //
-            for (Map.Entry<List<StopEntity>, String> path : allPaths.entrySet()) {
-                var stopsDTO = StopMapper.toDTOlist(path.getKey());
-                result.put(stopsDTO, path.getValue());
-            }
+            List<SearchResultDTO> result = allPaths.entrySet()
+                .stream()
+                .map(path -> {
+                    List<LinkDTO> links = path.getKey()
+                        .stream()
+                        .map(LinkMapper::mapToDto)
+                        .collect(Collectors.toList());
+                    String[] parts = path.getValue().split(" ");
+
+                    // Reconstruct the distance and duration parts
+                    String distance = parts[0] + " " + parts[1];
+                    String duration = parts[2] + " " + parts[3] + " " + parts[4] + " " + parts[5];
+//                    Double price = ;
+                    return SearchResultDTO.builder()
+                        .links(links)
+                        .totalDistance(path.getValue())
+                        .totalDistance(distance)
+                        .totalTime(duration)
+//                        .totalPrice()
+                        .build();
+                })
+                .toList();
+
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Search failed!");
+                .body("Search failed! "+ ex.getMessage());
         }
     }
 
     @GetMapping("/get")
     public ResponseEntity<?> getById(@RequestHeader("Authorization") String authorizationHeader,
-                                                   @RequestParam String id) {
+                                     @RequestParam String id) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
@@ -124,8 +157,8 @@ public class RouteController {
     }
 
     @GetMapping("/forCompany/{company}")
-    public ResponseEntity<?> getRoutesForCompany(
-        @RequestHeader("Authorization") String authorizationHeader, @PathVariable String company) {
+    public ResponseEntity<?> getRoutesForCompany(@RequestHeader("Authorization") String authorizationHeader,
+                                                 @PathVariable String company) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
@@ -138,6 +171,24 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Get routes for company failed!");
         }
+    }
+
+    //for admin
+    @GetMapping()
+    public ResponseEntity<List<RouteDTO>> getAllRoutes(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .build();
+            }
+            List<RouteDTO> restult = RouteMapper.toDTOList(routeService.getAll());
+            return ResponseEntity.ok(restult);
+        } catch (Exception ex) {
+            return ResponseEntity.noContent()
+                .build();
+        }
+
     }
 
 }

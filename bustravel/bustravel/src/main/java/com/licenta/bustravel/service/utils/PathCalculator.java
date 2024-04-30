@@ -1,8 +1,5 @@
 package com.licenta.bustravel.service.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,66 +9,68 @@ import java.util.Set;
 
 public class PathCalculator {
 
-    private static List<List<Node>> allPaths;
-    private final static Logger LOGGER = LoggerFactory.getLogger(PathCalculator.class.getName());
-    public static List<List<Node>> findAllPaths(Graph graph, Node source, Node destination) {
+    private static List<List<PathSegment>> allPaths; // Lista tuturor căilor găsite.
+
+    public static List<List<PathSegment>> findAllPaths(Graph graph, Node source, Node destination) {
         allPaths = new LinkedList<>();
         Set<Node> visited = new HashSet<>();
-        List<Node> currentPath = new LinkedList<>();
-        currentPath.add(source);
+        List<PathSegment> currentPath = new LinkedList<>();
         findAllPathsHelper(graph, source, destination, visited, currentPath);
         return allPaths;
     }
 
     private static void findAllPathsHelper(Graph graph, Node currentNode, Node destination,
-                                           Set<Node> visited, List<Node> currentPath) {
+                                           Set<Node> visited, List<PathSegment> currentPath) {
         visited.add(currentNode);
-        if (currentNode == destination) {
-            if (isValidPath(graph, currentPath)) { // Verificați dacă calea este validă
+        if (currentNode.equals(destination)) {
+            // La destinație, adăugăm un segment final fără un link ulterior.
+            currentPath.add(new PathSegment(currentNode, null));
+            if (isValidPath(graph, currentPath)) {
                 allPaths.add(new LinkedList<>(currentPath));
             }
+            currentPath.remove(currentPath.size() - 1); // Elimină segmentul adăugat.
         } else {
-            for (Map.Entry<Node, Long> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
-                Node nextNode = adjacencyPair.getKey();
+            for (Map.Entry<Link, Long> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
+                Node nextNode = adjacencyPair.getKey().getDestination();
                 if (!visited.contains(nextNode)) {
-                    currentPath.add(nextNode);
+                    // Adaugă segmentul curent cu link-ul către următorul nod înainte de a recursa.
+                    currentPath.add(new PathSegment(currentNode, adjacencyPair.getKey()));
                     findAllPathsHelper(graph, nextNode, destination, visited, currentPath);
-                    currentPath.remove(currentPath.size() - 1); // Backtrack
+                    currentPath.remove(currentPath.size() - 1); // Backtrack: elimină ultimul segment adăugat.
                 }
             }
         }
         visited.remove(currentNode);
     }
 
-    private static boolean isValidPath(Graph graph, List<Node> path) {
+    private static boolean isValidPath(Graph graph, List<PathSegment> path) {
+        // Verifică validitatea fiecărui segment.
         for (int i = 0; i < path.size() - 1; i++) {
-            Node currentNode = path.get(i);
-            Node nextNode = path.get(i + 1);
-            if (!graph.getNodes().contains(currentNode) || !graph.getNodes().contains(nextNode)) {
-                return false; // Dacă oricare dintre noduri nu aparține grafului, calea nu este validă
-            }
-            // Verifică dacă există o muchie între nodurile consecutive
-            if (!currentNode.getAdjacentNodes().containsKey(nextNode)) {
-                return false; // Dacă nu există o muchie între noduri, calea nu este validă
+            Link link = path.get(i).getLink();  // Verifică legătura fiecărui segment.
+            Node currentNode = path.get(i).getNode();
+            Node nextNode = path.get(i + 1).getNode();
+            if (link == null || !link.getDestination().equals(nextNode)) {
+                return false; // Link-ul nu corespunde cu nodul următor.
             }
         }
-        return true; // Calea este validă dacă toate nodurile și muchiile sunt prezente în graf
+        return true;
     }
 
-    public static Graph calculateShortestPathFromSource(Graph graph, Node source){
+    public static Graph calculateShortestPathFromSource(Graph graph, Node source) {
         source.setDistance(Long.valueOf(0));
         Set<Node> settledNodes = new HashSet<>();
         Set<Node> unsettledNodes = new HashSet<>();
 
         unsettledNodes.add(source);
 
-        while(unsettledNodes.size() != 0){
+        while (unsettledNodes.size() != 0) {
             Node current = getLowestDistanceNode(unsettledNodes);
             unsettledNodes.remove(current);
-            for(Map.Entry< Node, Long> adjacencyPair: current.getAdjacentNodes().entrySet()){
-                Node adjacentNode = adjacencyPair.getKey();
+            for (Map.Entry<Link, Long> adjacencyPair : current.getAdjacentNodes()
+                .entrySet()) {
+                Node adjacentNode = adjacencyPair.getKey().destination;
                 Long edgeWeight = adjacencyPair.getValue();
-                if(!settledNodes.contains(adjacentNode)){
+                if (!settledNodes.contains(adjacentNode)) {
                     calculateMinimumDistance(adjacentNode, edgeWeight, current);
                     unsettledNodes.add(adjacentNode);
                 }
@@ -81,10 +80,10 @@ public class PathCalculator {
         return graph;
     }
 
-    private static Node getLowestDistanceNode(Set < Node > unsettledNodes) {
+    private static Node getLowestDistanceNode(Set<Node> unsettledNodes) {
         Node lowestDistanceNode = null;
         long lowestDistance = Long.MAX_VALUE;
-        for (Node node: unsettledNodes) {
+        for (Node node : unsettledNodes) {
             long nodeDistance = node.getDistance();
             if (nodeDistance < lowestDistance) {
                 lowestDistance = nodeDistance;
@@ -94,8 +93,7 @@ public class PathCalculator {
         return lowestDistanceNode;
     }
 
-    private static void calculateMinimumDistance(Node evaluationNode,
-                                                 Long edgeWeigh, Node sourceNode) {
+    private static void calculateMinimumDistance(Node evaluationNode, Long edgeWeigh, Node sourceNode) {
         Long sourceDistance = sourceNode.getDistance();
         if (sourceDistance + edgeWeigh < evaluationNode.getDistance()) {
             evaluationNode.setDistance(sourceDistance + edgeWeigh);
