@@ -2,12 +2,13 @@ package com.licenta.bustravel.service;
 
 import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.BookingLinkEntity;
+import com.licenta.bustravel.model.LinkEntity;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface BookingService {
-    void add(BookingEntity booking) throws Exception;
+    List<BookingLinkEntity> add(BookingEntity booking, List<LinkEntity> links) throws Exception;
     Optional<BookingEntity> getById(int id) throws Exception;
     void modify(BookingEntity booking) throws Exception;
     void delete(BookingEntity booking) throws Exception;

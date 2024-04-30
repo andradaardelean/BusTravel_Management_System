@@ -2,7 +2,7 @@ package com.licenta.bustravel.service.utils;
 
 public class PathSegment {
     private Node node;
-    private Link link; // Acesta este link-ul spre următorul nod în cale.
+    private Link link;
 
     public PathSegment(Node node, Link link) {
         this.node = node;

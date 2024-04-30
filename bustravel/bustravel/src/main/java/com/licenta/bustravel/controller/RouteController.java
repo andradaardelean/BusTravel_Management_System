@@ -153,7 +153,6 @@ public class RouteController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Get by id failed!");
         }
-
     }
 
     @GetMapping("/forCompany/{company}")

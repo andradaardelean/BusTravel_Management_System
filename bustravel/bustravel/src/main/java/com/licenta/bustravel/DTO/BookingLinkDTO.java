@@ -1,8 +1,12 @@
 package com.licenta.bustravel.DTO;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 @Builder
+@Getter
+@Setter
 public class BookingLinkDTO {
     private int id;
     private BookingDTO booking;
@@ -11,7 +15,6 @@ public class BookingLinkDTO {
     private String distanceText;
     private String durationText;
     private Double price;
-    private int order;
     private String startTime;
     private String endTime;
 }

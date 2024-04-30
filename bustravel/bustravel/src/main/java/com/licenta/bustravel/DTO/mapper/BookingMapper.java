@@ -13,8 +13,6 @@ public class BookingMapper {
         return BookingDTO.builder()
             .id(booking.getId())
             .passengersNo(booking.getPassegersNo())
-            .routeId(booking.getRouteEntity()
-                .getId())
             .type(booking.getType().toString())
             .build();
     }
@@ -24,9 +22,6 @@ public class BookingMapper {
         return BookingEntity.builder()
             .id(booking.getId())
             .passegersNo(booking.getPassengersNo())
-            .routeEntity(RouteEntity.builder()
-                .id(booking.getRouteId())
-                .build())
             .type(BookingType.valueOf(booking.getType()))
             .build();
     }
@@ -49,9 +44,8 @@ public class BookingMapper {
                 .getDurationText())
             .price(bookingLink.getLink()
                 .getPrice())
-            .order(bookingLink.getOrder())
-            .startTime(bookingLink.getStartTime().toString())
-            .endTime(bookingLink.getEndTime().toString())
+            .startTime(bookingLink.getStartTime() != null ? bookingLink.getStartTime().toString() : null)
+            .endTime(bookingLink.getEndTime()!= null ? bookingLink.getEndTime().toString() : null)
             .build();
     }
 

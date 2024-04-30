@@ -18,6 +18,13 @@ public class LinkMapper {
 
     public static LinkEntity mapToModel(LinkDTO linkDTO){
         return LinkEntity.builder()
+            .route(RouteMapper.toModel(linkDTO.getRouteDTO(), 0, null))
+            .fromStop(StopMapper.toModel(linkDTO.getFromStop()))
+            .toStop(StopMapper.toModel(linkDTO.getToStop()))
+            .price(linkDTO.getPrice())
+            .distanceText(linkDTO.getDistance())
+            .durationText(linkDTO.getDuration())
+            .order(linkDTO.getOrder())
             .build();
     }
 }

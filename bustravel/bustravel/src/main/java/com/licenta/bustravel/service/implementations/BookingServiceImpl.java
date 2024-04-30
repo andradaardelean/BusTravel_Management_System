@@ -2,11 +2,14 @@ package com.licenta.bustravel.service.implementations;
 
 import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.BookingLinkEntity;
+import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.repositories.BookingLinkRepository;
 import com.licenta.bustravel.repositories.BookingRepository;
+import com.licenta.bustravel.repositories.LinkRepository;
 import com.licenta.bustravel.repositories.RouteRepository;
+import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
 import lombok.AllArgsConstructor;
@@ -29,16 +32,38 @@ public class BookingServiceImpl implements BookingService {
     private final RouteRepository routeRepository;
     private final BookingLinkRepository bookingLinkRepository;
     private final RouteServiceImpl routeService;
+    private final LinkRepository linkRepository;
+    private final StopsRepository stopsRepository;
 
     @Override
-    public void add(BookingEntity booking) throws Exception {
+    public List<BookingLinkEntity> add(BookingEntity booking, List<LinkEntity> links) throws Exception {
         try {
             Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
             String username = authentication.getName();
             UserEntity user = userService.getByUsername(username);
             booking.setUserEntity(user);
+            booking.setTime(LocalDateTime.now());
             bookingRepository.save(booking);
+            Set<RouteEntity> uniqueRoutes = links.stream()
+                .map(LinkEntity::getRoute)
+                .collect(Collectors.toSet());
+            uniqueRoutes.forEach(
+                route -> route.setAvailableSeats(route.getAvailableSeats() - booking.getPassegersNo()));
+            return links.stream()
+                .map(link -> bookingLinkRepository.save(BookingLinkEntity.builder()
+                    .id(0)
+                    .booking(booking)
+                    .link(linkRepository.findByFromStopAndToStopAndRoute(stopsRepository.findStop(link.getFromStop()
+                        .getLocation(), link.getFromStop()
+                        .getAddress()), stopsRepository.findStop(link.getToStop()
+                        .getLocation(), link.getToStop()
+                        .getAddress()), link.getRoute()))
+                    .order(link.getOrder())
+                    .startTime(link.getStartTime())
+                    .endTime(link.getEndTime())
+                    .build()))
+                .toList();
         } catch (Exception ex) {
             throw new Exception(ex);
         }
