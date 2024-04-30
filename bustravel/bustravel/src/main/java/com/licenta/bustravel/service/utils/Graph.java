@@ -1,5 +1,6 @@
 package com.licenta.bustravel.service.utils;
 
+import com.licenta.bustravel.model.StopEntity;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -13,10 +14,9 @@ public class Graph {
         nodes.add(nodeA);
     }
 
-    public Node getNodeByName(String name) {
+    public Node getNodeByStop(StopEntity stop) {
         return nodes.stream()
-            .filter(node -> node.getName()
-                .equals(name))
+            .filter(node -> node.getStop().equals(stop))
             .findFirst()
             .orElse(null);
     }

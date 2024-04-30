@@ -14,8 +14,10 @@ import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
 import com.licenta.bustravel.service.utils.DistanceMatrix;
 import com.licenta.bustravel.service.utils.Graph;
+import com.licenta.bustravel.service.utils.Link;
 import com.licenta.bustravel.service.utils.Node;
 import com.licenta.bustravel.service.utils.PathCalculator;
+import com.licenta.bustravel.service.utils.PathSegment;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,8 +282,8 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public Map<List<StopEntity>, String> search(String search, String startDate, String endDate, String startLocation,
-                                         String endLocation, String passengersNo) throws Exception {
+    public Map<List<LinkEntity>, String> search(String search, String startDate, String endDate, String startLocation,
+                                                String endLocation, String passengersNo) throws Exception {
         List<RouteEntity> foundRoutes;
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate startDateParsed = startDate.equals("null") ? null : LocalDate.parse(startDate, dateTimeFormatter);
@@ -289,15 +291,13 @@ public class RouteServiceImpl implements RouteService {
         int passengers = passengersNo.equals("null") ? 0 : Integer.parseInt(passengersNo);
 
         Predicate<RouteEntity> filterPredicate = route -> true;
-        if (startDateParsed != null) {
-            filterPredicate = filterPredicate.and(route -> route.getStartDateTime()
-                .toLocalDate()
-                .isEqual(startDateParsed));
-        }
-        if (endDateParsed != null) {
+        if (startDateParsed != null && endDateParsed != null) {
+            filterPredicate = filterPredicate.and(route -> route.getStartDateTime().toLocalDate().plusDays(1).isAfter(startDateParsed));
+            filterPredicate = filterPredicate.and(route -> route.getEndDateTime().toLocalDate().minusDays(1).isBefore(endDateParsed));
+        }else if(endDateParsed != null || startDateParsed != null) {
             filterPredicate = filterPredicate.and(route -> route.getEndDateTime()
                 .toLocalDate()
-                .isEqual(endDateParsed));
+                .isEqual(startDateParsed != null ? startDateParsed : endDateParsed));
         }
         if (passengers > 0) {
             filterPredicate = filterPredicate.and(route -> route.getAvailableSeats() >= passengers);
@@ -314,32 +314,52 @@ public class RouteServiceImpl implements RouteService {
             .filter(filterPredicate)
             .toList();
 
+        if(foundRoutes.isEmpty()) {
+            throw new Exception("No routes found!");
+        }
         return getAllPaths(foundRoutes, startLocation, endLocation);
     }
 
-    public Map<List<StopEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation,
-                                              String endLocation) throws Exception {
-        List<List<Node>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
-        Map<List<StopEntity>, String> allPathsStops = new HashMap<>();
-        for (List<Node> path : allPaths) {
-            List<StopEntity> stops = new ArrayList<>();
-            for (Node node : path) {
-                StopEntity stop = stopsRepository.findById(Integer.parseInt(node.getName()))
-                    .orElseThrow();
-                stops.add(stop);
+    public Map<List<LinkEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) throws Exception {
+        List<List<PathSegment>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
+        Map<List<LinkEntity>, String> allPathsStops = new HashMap<>();
+
+        for (List<PathSegment> path : allPaths) {
+            List<LinkEntity> links = new ArrayList<>();
+            for (PathSegment pathSegment : path) { // Asigurăm parcurgerea până la penultimul nod pentru a evita erori de index
+                Node fromNode = pathSegment.getNode();
+                Link link = pathSegment.getLink();
+                if (link != null) {
+                    Node toNode = link.getDestination();
+                    LinkEntity linkEntity = linkRepository.findByFromStopAndToStopAndRoute(
+                        fromNode.getStop(), toNode.getStop(), link.getRoute());
+                    if (linkEntity != null) {
+                        links.add(linkEntity);
+                    }
+                }
             }
-            Map<String, String> distanceMap = DistanceMatrix.parseData(DistanceMatrix.getData(stops.get(0)
-                .getLocation(), stops.get(stops.size() - 1)
-                .getLocation()));
-            allPathsStops.put(stops,distanceMap.get("distanceText") + " " + distanceMap.get("durationText"));
+
+            String distanceText = "";
+            String durationText = "";
+            if (!links.isEmpty()) {
+                StopEntity firstStop = links.get(0).getFromStop();
+                StopEntity lastStop = links.get(links.size() - 1).getToStop();
+                Map<String, String> distanceMap = DistanceMatrix.parseData(
+                    DistanceMatrix.getData(firstStop.getLocation(), lastStop.getLocation()));
+                distanceText = distanceMap.get("distanceText");
+                durationText = distanceMap.get("durationText");
+            }
+
+            allPathsStops.put(links, distanceText + " " + durationText);
         }
+
         return allPathsStops;
     }
 
-    public List<List<Node>> calculateAllPaths(List<RouteEntity> routes, String startLocation,
+    public List<List<PathSegment>> calculateAllPaths(List<RouteEntity> routes, String startLocation,
                                               String endLocation) throws Exception {
         Graph graph = buildGraph(routes);
-        List<List<Node>> allPaths = new ArrayList<>();
+        List<List<PathSegment>> allPaths = new ArrayList<>();
 
         if (startLocation.equals("null")) {
             startLocation = routes.stream()
@@ -358,10 +378,10 @@ public class RouteServiceImpl implements RouteService {
         StopEntity startLocationEntity = stopsRepository.findStopByLocation(startLocation);
         StopEntity endLocationEntity = stopsRepository.findStopByLocation(endLocation);
         if (startLocationEntity != null && endLocationEntity != null) {
-            Node startNode = graph.getNodeByName(String.valueOf(startLocationEntity.getId()));
-            Node endNode = graph.getNodeByName(String.valueOf(endLocationEntity.getId()));
+            Node startNode = graph.getNodeByStop(startLocationEntity);
+            Node endNode = graph.getNodeByStop(endLocationEntity);
             if (endNode == null) {
-                endNode = new Node(String.valueOf(endLocationEntity.getId()));
+                endNode = new Node(endLocationEntity);
                 graph.addNode(endNode);
             }
             allPaths = PathCalculator.findAllPaths(graph, startNode, endNode);
@@ -372,30 +392,28 @@ public class RouteServiceImpl implements RouteService {
 
     private Graph buildGraph(List<RouteEntity> routes) throws Exception {
         Graph graph = new Graph();
-
         for (RouteEntity route : routes) {
             for (LinkEntity link : route.getLinks()) {
-                String fromNodeId = String.valueOf(link.getFromStop()
-                    .getId());
-                String toNodeId = String.valueOf(link.getToStop()
-                    .getId());
-
-                Node fromNode = graph.getNodeByName(fromNodeId);
-                if (fromNode == null) {
-                    fromNode = new Node(fromNodeId);
+                Node fromNode = graph.getNodeByStop(link.getFromStop());
+                Node toNode = graph.getNodeByStop(link.getToStop());
+                if(fromNode == null) {
+                    fromNode = new Node(link.getFromStop());
                     graph.addNode(fromNode);
                 }
-
-                Node toNode = graph.getNodeByName(toNodeId);
-                if (toNode == null) {
-                    toNode = new Node(toNodeId);
+                if(toNode == null) {
+                    toNode = new Node(link.getToStop());
                     graph.addNode(toNode);
                 }
 
-                fromNode.addDestination(toNode, link.getDistance());
+
+                fromNode.addDestination(Link.builder()
+                    .destination(toNode)
+                    .route(route)
+                    .departureTime(link.getStartTime())
+                    .arrivalTime(link.getEndTime())
+                    .build(), link.getDistance());
             }
         }
-
         return graph;
     }
 
@@ -405,18 +423,18 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findByCompany(company);
     }
 
-    public Map<String, LocalDateTime> getLinksTime(LinkEntity link){
+    public Map<String, LocalDateTime> getLinksTime(LinkEntity link) {
         Map<String, LocalDateTime> timeMap = new HashMap<>();
         List<LinkEntity> links = linkRepository.findAllByRouteIdOrderByOrder(link.getRoute()
             .getId());
         LocalDateTime currentTime = link.getRoute()
             .getStartDateTime();
         for (LinkEntity linkEntity : links) {
-            if(linkEntity.getFromStop() == link.getFromStop()){
+            if (linkEntity.getFromStop() == link.getFromStop()) {
                 timeMap.put("from", currentTime);
             }
             currentTime = currentTime.plusMinutes(linkEntity.getDuration());
-            if(linkEntity.getToStop() == link.getToStop()){
+            if (linkEntity.getToStop() == link.getToStop()) {
                 timeMap.put("to", currentTime);
                 break;
             }
