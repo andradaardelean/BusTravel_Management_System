@@ -115,9 +115,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingEntity> getBookingsForUser(String username) throws Exception {
+    public List<List<BookingLinkEntity>> getBookingsForUser(String username) throws Exception {
         UserEntity user = userService.getByUsername(username);
-        return bookingRepository.findByUserEntity(user);
+        List<BookingEntity> bookings = bookingRepository.findByUserEntity(user);
+        return bookings.stream()
+            .map(BookingEntity::getBookingLinks)
+            .filter(links -> !links.isEmpty())
+            .toList();
     }
 
     @Override

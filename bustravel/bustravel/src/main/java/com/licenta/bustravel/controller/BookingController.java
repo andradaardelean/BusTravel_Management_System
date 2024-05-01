@@ -6,14 +6,9 @@ import com.licenta.bustravel.DTO.mapper.BookingMapper;
 import com.licenta.bustravel.DTO.mapper.LinkMapper;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.BookingEntity;
-import com.licenta.bustravel.model.BookingLinkEntity;
 import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.service.BookingService;
-import com.licenta.bustravel.service.RouteService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -63,8 +57,13 @@ public class BookingController {
             if (!jwtService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
-            return new ResponseEntity<>(BookingMapper.toDTOList(bookingService.getBookingsForUser(username)),
-                HttpStatus.OK);
+            List<List<BookingLinkDTO>> result = bookingService.getBookingsForUser(username)
+                .stream()
+                .map(bookings -> bookings.stream()
+                    .map(BookingMapper::toBookingLinkDTO)
+                    .toList())
+                .toList();
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(null);

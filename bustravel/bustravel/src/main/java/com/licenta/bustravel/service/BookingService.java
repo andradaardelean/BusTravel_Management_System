@@ -13,7 +13,7 @@ public interface BookingService {
     void modify(BookingEntity booking) throws Exception;
     void delete(BookingEntity booking) throws Exception;
     List<BookingEntity> getAll();
-    List<BookingEntity> getBookingsForUser(String username) throws Exception;
+    List<List<BookingLinkEntity>> getBookingsForUser(String username) throws Exception;
 
     List<BookingEntity> getBookingsForRoute(int routeId) throws Exception;
     List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) throws Exception;
