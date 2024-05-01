@@ -1,5 +1,6 @@
 package com.licenta.bustravel.DTO;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

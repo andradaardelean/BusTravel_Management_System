@@ -1,5 +1,6 @@
 package com.licenta.bustravel.model;
 
+import com.licenta.bustravel.model.enums.RequestStatus;
 import com.licenta.bustravel.model.enums.RequestType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,6 +38,10 @@ public class RequestEntity {
 
     @Column(name = "request_details")
     private String requestDetails;
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private RequestStatus status;
 
 
 }

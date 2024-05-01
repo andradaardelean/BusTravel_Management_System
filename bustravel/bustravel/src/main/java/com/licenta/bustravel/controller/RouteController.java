@@ -137,9 +137,9 @@ public class RouteController {
         }
     }
 
-    @GetMapping("/get")
+    @GetMapping("/{id}")
     public ResponseEntity<?> getById(@RequestHeader("Authorization") String authorizationHeader,
-                                     @RequestParam String id) {
+                                     @PathVariable String id) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
