@@ -45,7 +45,7 @@ public class BookingServiceImpl implements BookingService {
             UserEntity user = userService.getByUsername(username);
             booking.setUserEntity(user);
             booking.setTime(LocalDateTime.now());
-            bookingRepository.save(booking);
+            BookingEntity savedBooking = bookingRepository.save(booking);
             Set<RouteEntity> uniqueRoutes = links.stream()
                 .map(LinkEntity::getRoute)
                 .collect(Collectors.toSet());
@@ -62,11 +62,10 @@ public class BookingServiceImpl implements BookingService {
                         .getLocation(), link.getToStop()
                         .getAddress()), link.getRoute()))
                     .order(order.getAndIncrement())
-                    .startTime(link.getStartTime())
-                    .endTime(link.getEndTime())
-                    .build()))
-                .toList();
-            return booking.getId();
+//                    .startTime(link.getStartTime())
+//                    .endTime(link.getEndTime())
+                    .build()));
+            return savedBooking.getId();
         } catch (Exception ex) {
             throw new Exception(ex);
         }
