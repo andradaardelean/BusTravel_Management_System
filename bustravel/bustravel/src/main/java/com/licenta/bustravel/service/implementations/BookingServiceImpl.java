@@ -13,6 +13,8 @@ import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
     private final RouteServiceImpl routeService;
     private final LinkRepository linkRepository;
     private final StopsRepository stopsRepository;
+    private final Logger LOGGER = LoggerFactory.getLogger(BookingServiceImpl.class);
 
     @Override
     public Integer add(BookingEntity booking, List<LinkEntity> links) throws Exception {
@@ -52,19 +55,22 @@ public class BookingServiceImpl implements BookingService {
             uniqueRoutes.forEach(
                 route -> route.setAvailableSeats(route.getAvailableSeats() - booking.getPassegersNo()));
             AtomicInteger order = new AtomicInteger(0);
-            links.stream()
-                .map(link -> bookingLinkRepository.save(BookingLinkEntity.builder()
-                    .id(0)
-                    .booking(booking)
-                    .link(linkRepository.findByFromStopAndToStopAndRoute(stopsRepository.findStop(link.getFromStop()
+            links.forEach(link -> {
+                LinkEntity linkEntity = linkRepository.findByFromStopAndToStopAndRoute(stopsRepository.findStop(
+                    link.getFromStop()
                         .getLocation(), link.getFromStop()
                         .getAddress()), stopsRepository.findStop(link.getToStop()
-                        .getLocation(), link.getToStop()
-                        .getAddress()), link.getRoute()))
+                    .getLocation(), link.getToStop()
+                    .getAddress()), link.getRoute());
+                bookingLinkRepository.save(BookingLinkEntity.builder()
+                    .id(0)
+                    .booking(booking)
+                    .link(linkEntity)
                     .order(order.getAndIncrement())
-//                    .startTime(link.getStartTime())
-//                    .endTime(link.getEndTime())
-                    .build()));
+                    .startTime(link.getStartTime())
+                    .endTime(link.getEndTime())
+                    .build());
+            });
             return savedBooking.getId();
         } catch (Exception ex) {
             throw new Exception(ex);
@@ -129,7 +135,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) {
-        return bookingLinkRepository.findAllByBookingId(bookingId)
+        List<BookingLinkEntity> bookingLinkEntitie = bookingLinkRepository.findAllByBookingId(bookingId);
+        List<BookingLinkEntity> bookingLinkEntities = bookingLinkRepository.findAllByBookingId(bookingId)
             .stream()
             .map(bookingLink -> {
                 Map<String, LocalDateTime> timeMap = routeService.getLinksTime(bookingLink.getLink());
@@ -138,6 +145,7 @@ public class BookingServiceImpl implements BookingService {
                 return bookingLink;
             })
             .toList();
+        return bookingLinkEntities;
     }
 
     @Override

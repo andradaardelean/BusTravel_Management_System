@@ -433,7 +433,7 @@ public class RouteServiceImpl implements RouteService {
             if (linkEntity.getFromStop() == link.getFromStop()) {
                 timeMap.put("from", currentTime);
             }
-            currentTime = currentTime.plusMinutes(linkEntity.getDuration());
+            currentTime = currentTime.plusMinutes(linkEntity.getDuration()!= null ? linkEntity.getDuration() : 0);
             if (linkEntity.getToStop() == link.getToStop()) {
                 timeMap.put("to", currentTime);
                 break;
