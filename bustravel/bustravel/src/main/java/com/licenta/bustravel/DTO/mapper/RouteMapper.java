@@ -36,7 +36,6 @@ public class RouteMapper {
             .totalSeats(route.getTotalSeats())
             .reccurencyNo(reccurencyNo)
             .recurrenceType(recurrenceType)
-            .bookingList(new ArrayList<>())
             .links(new ArrayList<>())
             .build();
     }

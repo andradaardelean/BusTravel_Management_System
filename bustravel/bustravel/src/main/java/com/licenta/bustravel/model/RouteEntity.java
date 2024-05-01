@@ -51,9 +51,6 @@ public class RouteEntity {
     @JoinColumn(name = "company_id")
     private CompanyEntity companyEntity;
 
-    @OneToMany(mappedBy = "routeEntity",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<BookingEntity> bookingList = new ArrayList<>();
-
     @Column(name = "recurrence_no")
     private Integer reccurencyNo;
 

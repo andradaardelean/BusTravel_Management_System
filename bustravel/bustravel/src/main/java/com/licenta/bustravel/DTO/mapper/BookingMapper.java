@@ -38,6 +38,7 @@ public class BookingMapper {
             .booking(BookingMapper.toDTO(bookingLink.getBooking()))
             .fromStop(StopMapper.toDTO(bookingLink.getLink().getFromStop()))
             .toStop(StopMapper.toDTO(bookingLink.getLink().getToStop()))
+            .order(bookingLink.getOrder())
             .distanceText(bookingLink.getLink()
                 .getDistanceText())
             .durationText(bookingLink.getLink()

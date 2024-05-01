@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookingService {
-    List<BookingLinkEntity> add(BookingEntity booking, List<LinkEntity> links) throws Exception;
+    Integer add(BookingEntity booking, List<LinkEntity> links) throws Exception;
     Optional<BookingEntity> getById(int id) throws Exception;
     void modify(BookingEntity booking) throws Exception;
     void delete(BookingEntity booking) throws Exception;
@@ -18,4 +18,5 @@ public interface BookingService {
     List<BookingEntity> getBookingsForRoute(int routeId) throws Exception;
     List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) throws Exception;
 
+    List<BookingLinkEntity> getBookingsForCompany(String company);
 }

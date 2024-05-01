@@ -12,6 +12,7 @@ public class BookingLinkDTO {
     private BookingDTO booking;
     private StopsDTO fromStop;
     private StopsDTO toStop;
+    private Integer order;
     private String distanceText;
     private String durationText;
     private Double price;

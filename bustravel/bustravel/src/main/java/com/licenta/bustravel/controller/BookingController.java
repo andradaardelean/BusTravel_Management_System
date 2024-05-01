@@ -86,11 +86,8 @@ public class BookingController {
                 .stream()
                 .map(LinkMapper::mapToModel)
                 .toList();
-            List<BookingLinkDTO> bookingLinkDTOs = bookingService.add(bookingEntity, links)
-                .stream()
-                .map(BookingMapper::toBookingLinkDTO)
-                .toList();
-            return new ResponseEntity<>(bookingLinkDTOs, HttpStatus.OK);
+            Integer bookingId = bookingService.add(bookingEntity, links);
+            return new ResponseEntity<>(bookingId, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Add booking does not work. " + e.getMessage());
@@ -150,5 +147,22 @@ public class BookingController {
         }
     }
 
-    //adu booking uri pt companie
+    @GetMapping("/forCompany/{company}")
+    public @ResponseBody ResponseEntity<?> getBookingsForCompany(@RequestHeader("Authorization") String authorization,
+                                                                 @PathVariable String company) {
+        try {
+            String token = authorization.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token already invalidated!");
+            List<BookingLinkDTO> result = bookingService.getBookingsForCompany(company)
+                .stream()
+                .map(BookingMapper::toBookingLinkDTO)
+                .toList();
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Get bookings for company does not work. " + e.getMessage());
+        }
+    }
 }

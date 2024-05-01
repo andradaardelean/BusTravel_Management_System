@@ -29,11 +29,6 @@ public class BookingEntity {
     private LocalDateTime time;
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "route_id")
-    private RouteEntity routeEntity;
-
-    @JsonIgnore
-    @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
 
