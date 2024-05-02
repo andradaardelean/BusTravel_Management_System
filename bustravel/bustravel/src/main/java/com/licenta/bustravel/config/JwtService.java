@@ -24,8 +24,6 @@ import java.util.function.Function;
 public class JwtService {
     private Set<String> invalidatedTokens = new HashSet<>();
 
-    private Logger LOGGER = LoggerFactory.getLogger(JwtService.class.getName());
-
     public void invalidateToken(String token) {
         invalidatedTokens.add(token);
     }
@@ -36,9 +34,10 @@ public class JwtService {
 
     public String generateToken(String username, Collection<? extends GrantedAuthority> authorities) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", authorities.stream()
-            .map(GrantedAuthority::getAuthority)
-            .toList());
+        if (authorities != null && !authorities.isEmpty()) {
+            claims.put("roles", authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList());        }
 
         return createToken(claims, username);
     }

@@ -22,9 +22,6 @@ public class BustravelApplication {
 			e.printStackTrace();
 		}
 
-		DistanceMatrix map = new DistanceMatrix();
-		map.parseData(map.getData("Cluj-Napoca", "Oradea"));
-
 		logger.setLevel(Level.FINE);
 		logger.addHandler(new ConsoleHandler());
 		//adding custom handler

@@ -8,6 +8,7 @@ import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.CompanyService;
 import lombok.AllArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -73,9 +74,17 @@ public class CompanyServiceImpl implements CompanyService {
             try {
                 companyRepository.save(companyEntity);
                 String ownerEmail = companyEntity.getOwnerEmail();
-                String ownerUsername = ownerEmail.substring(0, ownerEmail.indexOf('@'));
+                String ownerUsername = ownerEmail.substring(0, ownerEmail.indexOf('@')) + getRandomChar("asdahbdjadahsxdau4273e2hedqw9218edbcjass");
                 String password = generatePassword();
-                UserEntity owner = new UserEntity(0,ownerUsername, password, companyEntity.getOwnerName(), companyEntity.getPhone(), companyEntity.getOwnerEmail(), UserType.COMPANYEMPLOYEE, companyEntity, null);
+                UserEntity owner = UserEntity.builder()
+                    .username(ownerUsername)
+                    .password(password)
+                    .name(companyEntity.getOwnerName())
+                    .phone(companyEntity.getPhone())
+                    .email(companyEntity.getOwnerEmail())
+                    .userType(UserType.COMPANYEMPLOYEE)
+                    .companyEntity(companyEntity)
+                    .build();
                 owner.setPassword(passwordEncoder.encode(password));
                 userRepository.save(owner);
                 String to = companyEntity.getOwnerEmail();

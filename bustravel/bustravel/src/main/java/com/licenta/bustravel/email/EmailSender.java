@@ -17,7 +17,8 @@ public class EmailSender {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 //"travel.management.system2024@gmail.com", "Licentaapp2024"
-                return new PasswordAuthentication("code.crushers.test@gmail.com", "zgqb uehm kyvn qpsi");
+                //"code.crushers.test@gmail.com", "zgqb uehm kyvn qpsi"
+                return new PasswordAuthentication("travel.management.system2024@gmail.com", "ljcm pije gxyr rsih");
             }
         });
         try {
@@ -25,7 +26,7 @@ public class EmailSender {
             MimeMessage message = new MimeMessage(session);
 
             // Set From: header field of the header
-            message.setFrom(new InternetAddress("code.crushers.test@gmail.com"));
+            message.setFrom(new InternetAddress("travel.management.system2024@gmail.com"));
 
             // Set To: header field of the header
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));

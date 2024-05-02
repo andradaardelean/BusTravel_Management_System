@@ -16,35 +16,37 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class RequestServiceImpl implements RequestService
-{
+public class RequestServiceImpl implements RequestService {
     private final CompanyService companyService;
     private final RequestRepository requestRepository;
+
     @Override
     public void makeCompanyRequest(RequestEntity request, CompanyEntity companyEntity) throws Exception {
-            String requestDetails = createRequestDetailsForCompany(companyEntity);
-            request.setCreatedAt(LocalDateTime.now());
-            request.setRequestDetails(requestDetails);
-            request.setStatus(RequestStatus.CREATED);
-            requestRepository.save(request);
+        String requestDetails = createRequestDetailsForCompany(companyEntity);
+        request.setCreatedAt(LocalDateTime.now());
+        request.setRequestDetails(requestDetails);
+        request.setStatus(RequestStatus.CREATED);
+        requestRepository.save(request);
     }
 
     @Override
     public void solveCompanyRequest(RequestEntity request) throws Exception {
-        Map<String, String> requestDetails = stringToMap(request.getRequestDetails());
+        RequestEntity requestEntity = requestRepository.findById(request.getId())
+            .orElseThrow(() -> new Exception("Request not found"));
+        Map<String, String> requestDetails = stringToMap(requestEntity.getRequestDetails());
         CompanyEntity companyEntity = CompanyEntity.builder()
-                .name(requestDetails.get("name"))
-                .description(requestDetails.get("description"))
-                .ownerName(requestDetails.get("ownerName"))
-                .ownerEmail(requestDetails.get("ownerEmail"))
-                .phone(requestDetails.get("phone"))
-                .build();
+            .name(requestDetails.get("name"))
+            .description(requestDetails.get("description"))
+            .ownerName(requestDetails.get("ownerName"))
+            .ownerEmail(requestDetails.get("ownerEmail"))
+            .phone(requestDetails.get("phone"))
+            .build();
         companyService.add(companyEntity);
-        request.setStatus(RequestStatus.APPROVED);
-        requestRepository.save(request);
+        requestEntity.setStatus(RequestStatus.APPROVED);
+        requestRepository.save(requestEntity);
     }
 
-    private String createRequestDetailsForCompany(CompanyEntity companyEntity){
+    private String createRequestDetailsForCompany(CompanyEntity companyEntity) {
         Map<String, String> requestDetails = new HashMap<>();
         requestDetails.put("name", companyEntity.getName());
         requestDetails.put("description", companyEntity.getDescription());
@@ -57,7 +59,9 @@ public class RequestServiceImpl implements RequestService
     public static Map<String, String> stringToMap(String mapAsString) {
         Map<String, String> map = new HashMap<>();
         // Remove the curly braces and any potential whitespace from the string
-        String trimmedString = mapAsString.trim().substring(1, mapAsString.length() - 1).trim();
+        String trimmedString = mapAsString.trim()
+            .substring(1, mapAsString.length() - 1)
+            .trim();
 
         if (!trimmedString.isEmpty()) {
             // Split the string by commas to separate out the key-value pairs
@@ -82,16 +86,17 @@ public class RequestServiceImpl implements RequestService
 
     @Override
     public void deleteRequest(RequestEntity request) throws Exception {
-
+        requestRepository.delete(request);
     }
 
     @Override
     public RequestEntity getRequestById(int id) throws Exception {
-        return null;
+        return requestRepository.findById(id)
+            .orElseThrow(() -> new Exception("Request not found"));
     }
 
     @Override
     public List<RequestEntity> getAllRequests() {
-        return null;
+        return requestRepository.findAll();
     }
 }

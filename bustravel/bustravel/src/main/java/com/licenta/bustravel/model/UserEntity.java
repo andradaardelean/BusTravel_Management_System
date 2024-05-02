@@ -36,12 +36,16 @@ public class UserEntity {
     @Column(name="usertype")
     @Enumerated(EnumType.STRING)
     private UserType userType;
+    @Column(name="token")
+    private String token;
 
     @ManyToOne
     @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
     @OneToMany(mappedBy = "userEntity",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<BookingEntity> bookingList = new ArrayList<>();
+
+
 
 
     public boolean isValid(String phone, String email){

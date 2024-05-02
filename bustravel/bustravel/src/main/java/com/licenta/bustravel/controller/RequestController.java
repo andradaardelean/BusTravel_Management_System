@@ -27,7 +27,7 @@ public class RequestController {
     private final JwtService jwtService;
 
 
-    // NOT TESTED
+
     @GetMapping
     public ResponseEntity<List<RequestDTO>> getAllRequests(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(requestService.getAllRequests()
@@ -52,4 +52,19 @@ public class RequestController {
             return ResponseEntity.badRequest().body("Add request does not work. " + e.getMessage());
         }
     }
+
+    @PostMapping("/solve")
+    public ResponseEntity<?> solveRequest(@RequestHeader("Authorization") String authorizationHeader, @RequestBody RequestDTO requestDTO) {
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token already invalidated!");
+            requestService.solveCompanyRequest(RequestMapper.toRequestEntity(requestDTO));
+            return ResponseEntity.ok("Request resolved.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Resolve request does not work. " + e.getMessage());
+        }
+    }
+
 }

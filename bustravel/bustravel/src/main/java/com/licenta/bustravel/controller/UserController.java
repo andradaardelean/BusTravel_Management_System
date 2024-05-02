@@ -2,6 +2,8 @@ package com.licenta.bustravel.controller;
 
 
 import com.licenta.bustravel.DTO.AuthRequest;
+import com.licenta.bustravel.DTO.ChangePasswordDTO;
+import com.licenta.bustravel.DTO.ForgotPasswdDTO;
 import com.licenta.bustravel.DTO.UserDTO;
 import com.licenta.bustravel.DTO.UserSignUpDTO;
 import com.licenta.bustravel.config.JwtService;
@@ -17,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,8 +64,14 @@ public class UserController {
     public @ResponseBody ResponseEntity<?> signUp(@RequestBody UserSignUpDTO userDTO) {
         try {
             UserType userType = UserType.valueOf(userDTO.getUserType());
-            UserEntity newUser = new UserEntity(0, userDTO.getUsername(), userDTO.getPassword(), userDTO.getName(),
-                userDTO.getPhone(), userDTO.getEmail(), userType, null, null);
+            UserEntity newUser = UserEntity.builder()
+                .username(userDTO.getUsername())
+                .password(userDTO.getPassword())
+                .name(userDTO.getName())
+                .phone(userDTO.getPhone())
+                .email(userDTO.getEmail())
+                .userType(userType)
+                .build();
             userService.add(newUser);
         } catch (Exception e) {
             e.printStackTrace();
@@ -131,8 +140,13 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             LOGGER.info("Modifying user -1: " + userDTO);
-            UserEntity user = new UserEntity(0, userDTO.getUsername(), null, userDTO.getName(), userDTO.getPhone(),
-                userDTO.getEmail(), UserType.valueOf(userDTO.getUserType()), null, null);
+            UserEntity user = UserEntity.builder()
+                .username(userDTO.getUsername())
+                .name(userDTO.getName())
+                .phone(userDTO.getPhone())
+                .email(userDTO.getEmail())
+                .userType(UserType.valueOf(userDTO.getUserType()))
+                .build();
             LOGGER.info("Modifying user0: " + user);
             userService.modify(user);
             LOGGER.info("User modified successfully!");
@@ -179,4 +193,57 @@ public class UserController {
         }
         return ResponseEntity.ok("User deleted successfully!");
     }
+
+    @PutMapping("/forgotPassword")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswdDTO userDTO) {
+        try {
+            String token = jwtService.generateToken(userDTO.getUsername(), null);
+            userService.forgotPassword(userDTO.getUsername(), userDTO.getEmail(), token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Forgot password does not work. " + e.getMessage());
+        }
+        return ResponseEntity.ok("Email sent!");
+    }
+
+    @GetMapping("/validateToken/{token}")
+    public ResponseEntity<?> validateToken(@PathVariable String token) {
+        try {
+            if (jwtService.isTokenValid(token)) {
+                String username = jwtService.extractUsername(token);
+                UserEntity user = userService.checkToken(username, token);
+                UserDTO foundUser = UserDTO.builder()
+                    .username(user.getUsername())
+                    .name(user.getName())
+                    .phone(user.getPhone())
+                    .email(user.getEmail())
+                    .userType(user.getUserType()
+                        .toString())
+                    .build();
+                if(foundUser != null) {
+                    return new ResponseEntity<>(foundUser, HttpStatus.OK);
+                }
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Token is not valid!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Token is not valid!");
+        }
+    }
+
+
+    @PutMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
+        try {
+            String username = jwtService.extractUsername(changePasswordDTO.getToken());
+            userService.changePassword(username, changePasswordDTO.getPassword(), changePasswordDTO.getToken());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Change password does not work. " + e.getMessage());
+        }
+        return ResponseEntity.ok("Password changed successfully!");
+    }
+
+
 }
