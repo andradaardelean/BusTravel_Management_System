@@ -25,7 +25,7 @@ public class RequestServiceImpl implements RequestService {
         String requestDetails = createRequestDetailsForCompany(companyEntity);
         request.setCreatedAt(LocalDateTime.now());
         request.setRequestDetails(requestDetails);
-        request.setStatus(RequestStatus.CREATED);
+        request.setStatus(RequestStatus.PENDING);
         requestRepository.save(request);
     }
 
@@ -96,7 +96,11 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public List<RequestEntity> getAllRequests() {
-        return requestRepository.findAll();
+    public List<RequestEntity> getAllRequests(String status) {
+        if(status.equals("ALL"))
+            return requestRepository.findAll();
+        else{
+            return requestRepository.findAllByStatus(RequestStatus.valueOf(status));
+        }
     }
 }

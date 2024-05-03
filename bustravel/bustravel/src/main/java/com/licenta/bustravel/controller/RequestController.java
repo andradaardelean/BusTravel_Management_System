@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -28,12 +29,21 @@ public class RequestController {
 
 
 
-    @GetMapping
-    public ResponseEntity<List<RequestDTO>> getAllRequests(@RequestHeader("Authorization") String authorization) {
-        return ResponseEntity.ok(requestService.getAllRequests()
-            .stream()
-            .map(RequestMapper::toRequestDTO)
-            .toList());
+    @GetMapping("/{status}")
+    public ResponseEntity<?> getAllRequests(@RequestHeader("Authorization") String authorizationHeader, @PathVariable String status) {
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!jwtService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token already invalidated!");
+
+            return ResponseEntity.ok(requestService.getAllRequests(status)
+                .stream()
+                .map(RequestMapper::toRequestDTO)
+                .toList());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Get all requests does not work. " + e.getMessage());
+        }
     }
 
     @PostMapping

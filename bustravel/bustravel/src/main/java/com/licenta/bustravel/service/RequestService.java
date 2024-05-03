@@ -12,5 +12,5 @@ public interface RequestService {
     void modifyRequest(RequestEntity request) throws Exception;
     void deleteRequest(RequestEntity request) throws Exception;
     RequestEntity getRequestById(int id) throws Exception;
-    List<RequestEntity> getAllRequests();
+    List<RequestEntity> getAllRequests(String status);
 }
