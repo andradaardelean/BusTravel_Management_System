@@ -30,9 +30,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 @Service
@@ -149,6 +151,7 @@ public class RouteServiceImpl implements RouteService {
 
     public List<RouteEntity> createLinks(List<RouteEntity> routes, List<StopEntity> stops) {
         routes.forEach(route -> {
+            LocalDateTime currentTime = route.getStartDateTime();
             for (int i = 0; i < stops.size() - 1; i++) {
                 StopEntity fromStop = stops.get(i);
                 fromStop = stopsRepository.findStop(fromStop.getLocation(),
@@ -168,17 +171,25 @@ public class RouteServiceImpl implements RouteService {
                 if (distanceMap == null) {
                     LOGGER.error("Error while calculating distance between stops");
                 }
+                Long duration = Long.parseLong(distanceMap.get("durationValue"));
+                LocalDateTime nextTime = currentTime.plusSeconds(duration);
                 LinkEntity link = LinkEntity.builder()
                     .route(route)
                     .fromStop(fromStop)
                     .toStop(toStop)
                     .distance(Long.parseLong(distanceMap.get("distanceValue")))
                     .distanceText(distanceMap.get("distanceText"))
-                    .duration(Long.parseLong(distanceMap.get("durationValue")))
+                    .duration(duration)
                     .durationText(distanceMap.get("durationText"))
                     .price(10.0)
                     .order(i)
+                    .startTime(currentTime)
+                    .endTime(nextTime)
                     .build();
+                currentTime = nextTime;
+                if (i == stops.size() - 2) {
+                    route.setEndDateTime(currentTime);
+                }
                 route.getLinks()
                     .add(link);
                 fromStop.getFromLinks()
@@ -292,9 +303,15 @@ public class RouteServiceImpl implements RouteService {
 
         Predicate<RouteEntity> filterPredicate = route -> true;
         if (startDateParsed != null && endDateParsed != null) {
-            filterPredicate = filterPredicate.and(route -> route.getStartDateTime().toLocalDate().plusDays(1).isAfter(startDateParsed));
-            filterPredicate = filterPredicate.and(route -> route.getEndDateTime().toLocalDate().minusDays(1).isBefore(endDateParsed));
-        }else if(endDateParsed != null || startDateParsed != null) {
+            filterPredicate = filterPredicate.and(route -> route.getStartDateTime()
+                .toLocalDate()
+                .plusDays(1)
+                .isAfter(startDateParsed));
+            filterPredicate = filterPredicate.and(route -> route.getEndDateTime()
+                .toLocalDate()
+                .minusDays(1)
+                .isBefore(endDateParsed));
+        } else if (endDateParsed != null || startDateParsed != null) {
             filterPredicate = filterPredicate.and(route -> route.getEndDateTime()
                 .toLocalDate()
                 .isEqual(startDateParsed != null ? startDateParsed : endDateParsed));
@@ -314,25 +331,27 @@ public class RouteServiceImpl implements RouteService {
             .filter(filterPredicate)
             .toList();
 
-        if(foundRoutes.isEmpty()) {
+        if (foundRoutes.isEmpty()) {
             throw new Exception("No routes found!");
         }
         return getAllPaths(foundRoutes, startLocation, endLocation);
     }
 
-    public Map<List<LinkEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation, String endLocation) throws Exception {
+    public Map<List<LinkEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation,
+                                                     String endLocation) throws Exception {
         List<List<PathSegment>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
         Map<List<LinkEntity>, String> allPathsStops = new HashMap<>();
 
         for (List<PathSegment> path : allPaths) {
             List<LinkEntity> links = new ArrayList<>();
-            for (PathSegment pathSegment : path) { // Asigurăm parcurgerea până la penultimul nod pentru a evita erori de index
+            for (PathSegment pathSegment : path) { // Asigurăm parcurgerea până la penultimul nod pentru a evita
+                // erori de index
                 Node fromNode = pathSegment.getNode();
                 Link link = pathSegment.getLink();
                 if (link != null) {
                     Node toNode = link.getDestination();
-                    LinkEntity linkEntity = linkRepository.findByFromStopAndToStopAndRoute(
-                        fromNode.getStop(), toNode.getStop(), link.getRoute());
+                    LinkEntity linkEntity = linkRepository.findByFromStopAndToStopAndRoute(fromNode.getStop(),
+                        toNode.getStop(), link.getRoute());
                     if (linkEntity != null) {
                         links.add(linkEntity);
                     }
@@ -342,8 +361,10 @@ public class RouteServiceImpl implements RouteService {
             String distanceText = "";
             String durationText = "";
             if (!links.isEmpty()) {
-                StopEntity firstStop = links.get(0).getFromStop();
-                StopEntity lastStop = links.get(links.size() - 1).getToStop();
+                StopEntity firstStop = links.get(0)
+                    .getFromStop();
+                StopEntity lastStop = links.get(links.size() - 1)
+                    .getToStop();
                 Map<String, String> distanceMap = DistanceMatrix.parseData(
                     DistanceMatrix.getData(firstStop.getLocation(), lastStop.getLocation()));
                 distanceText = distanceMap.get("distanceText");
@@ -357,8 +378,9 @@ public class RouteServiceImpl implements RouteService {
     }
 
     public List<List<PathSegment>> calculateAllPaths(List<RouteEntity> routes, String startLocation,
-                                              String endLocation) throws Exception {
+                                                     String endLocation) throws Exception {
         Graph graph = buildGraph(routes);
+        verifyTransferPoint(graph);
         List<List<PathSegment>> allPaths = new ArrayList<>();
 
         if (startLocation.equals("null")) {
@@ -384,6 +406,7 @@ public class RouteServiceImpl implements RouteService {
                 endNode = new Node(endLocationEntity);
                 graph.addNode(endNode);
             }
+            startNode.setIsTransferPoint(false);
             allPaths = PathCalculator.findAllPaths(graph, startNode, endNode);
         }
 
@@ -396,11 +419,11 @@ public class RouteServiceImpl implements RouteService {
             for (LinkEntity link : route.getLinks()) {
                 Node fromNode = graph.getNodeByStop(link.getFromStop());
                 Node toNode = graph.getNodeByStop(link.getToStop());
-                if(fromNode == null) {
+                if (fromNode == null) {
                     fromNode = new Node(link.getFromStop());
                     graph.addNode(fromNode);
                 }
-                if(toNode == null) {
+                if (toNode == null) {
                     toNode = new Node(link.getToStop());
                     graph.addNode(toNode);
                 }
@@ -415,6 +438,31 @@ public class RouteServiceImpl implements RouteService {
             }
         }
         return graph;
+    }
+
+    void verifyTransferPoint(Graph graph) {
+        for (Node node : graph.getNodes()) {
+            Map<LocalDate, Set<Node>> daysWithTransfers = new HashMap<>();
+
+            for (Map.Entry<Link, Long> entry : node.getAdjacentNodes().entrySet()) {
+                Link link = entry.getKey();
+                Node destination = link.getDestination();
+                LocalDate departureDay = link.getDepartureTime().toLocalDate();
+
+                daysWithTransfers.putIfAbsent(departureDay, new HashSet<>());
+                daysWithTransfers.get(departureDay).add(destination);
+            }
+
+            boolean isTransfer = false;
+            for (Set<Node> transfers : daysWithTransfers.values()) {
+                if (transfers.size() > 1) {
+                    isTransfer = true;
+                    break; // Once we know it's a transfer point, no need to check further
+                }
+            }
+
+            node.setIsTransferPoint(isTransfer); // Set the isTransferPoint property of the node
+        }
     }
 
 
@@ -433,7 +481,7 @@ public class RouteServiceImpl implements RouteService {
             if (linkEntity.getFromStop() == link.getFromStop()) {
                 timeMap.put("from", currentTime);
             }
-            currentTime = currentTime.plusMinutes(linkEntity.getDuration()!= null ? linkEntity.getDuration() : 0);
+            currentTime = currentTime.plusMinutes(linkEntity.getDuration() != null ? linkEntity.getDuration() : 0);
             if (linkEntity.getToStop() == link.getToStop()) {
                 timeMap.put("to", currentTime);
                 break;

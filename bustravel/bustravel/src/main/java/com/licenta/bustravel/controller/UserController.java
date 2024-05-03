@@ -9,6 +9,7 @@ import com.licenta.bustravel.DTO.UserSignUpDTO;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
+import com.licenta.bustravel.service.CompanyService;
 import com.licenta.bustravel.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -47,6 +48,8 @@ public class UserController {
     private JwtService jwtService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private final CompanyService companyService;
 
     private Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
@@ -146,6 +149,7 @@ public class UserController {
                 .phone(userDTO.getPhone())
                 .email(userDTO.getEmail())
                 .userType(UserType.valueOf(userDTO.getUserType()))
+                .companyEntity(userDTO.getCompany() != null ? companyService.getByName(userDTO.getCompany()) : null)
                 .build();
             LOGGER.info("Modifying user0: " + user);
             userService.modify(user);

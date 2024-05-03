@@ -46,8 +46,6 @@ public class DistanceMatrix {
             distanceMap.put("durationText", (String) duration.get("text"));
             distanceMap.put("distanceValue", String.valueOf(distance.get("value")));
             distanceMap.put("durationValue", String.valueOf(duration.get("value")));
-            LOGGER.info("Distance: " + distance.get("text"));
-            LOGGER.info("Duration: " + duration.get("text"));
             return distanceMap;
         } catch (ParseException e) {
             e.printStackTrace();

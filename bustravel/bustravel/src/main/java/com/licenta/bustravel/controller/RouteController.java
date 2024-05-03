@@ -181,8 +181,8 @@ public class RouteController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .build();
             }
-            List<RouteDTO> restult = RouteMapper.toDTOList(routeService.getAll());
-            return ResponseEntity.ok(restult);
+            List<RouteDTO> result = RouteMapper.toDTOList(routeService.getAll());
+            return ResponseEntity.ok(result);
         } catch (Exception ex) {
             return ResponseEntity.noContent()
                 .build();
