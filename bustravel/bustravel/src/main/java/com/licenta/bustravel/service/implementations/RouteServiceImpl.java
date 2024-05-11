@@ -12,11 +12,13 @@ import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
+import com.licenta.bustravel.service.utils.AStar;
+import com.licenta.bustravel.service.utils.Dijkstra;
 import com.licenta.bustravel.service.utils.DistanceMatrix;
 import com.licenta.bustravel.service.utils.Graph;
 import com.licenta.bustravel.service.utils.Link;
 import com.licenta.bustravel.service.utils.Node;
-import com.licenta.bustravel.service.utils.PathCalculator;
+import com.licenta.bustravel.service.utils.DepthFirstSearch;
 import com.licenta.bustravel.service.utils.PathSegment;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -292,10 +295,21 @@ public class RouteServiceImpl implements RouteService {
         return routeRepository.findAll();
     }
 
+
     @Override
     public Map<List<LinkEntity>, String> search(String search, String startDate, String endDate, String startLocation,
                                                 String endLocation, String passengersNo) throws Exception {
-        List<RouteEntity> foundRoutes;
+
+        List<RouteEntity> foundRoutes = getFoundRoutes(search, startDate, endDate, passengersNo);
+        if (foundRoutes.isEmpty()) {
+            throw new Exception("No routes found!");
+        }
+        List<List<PathSegment>> allPaths = calculatePaths(foundRoutes, startLocation, endLocation, "ALL");
+        return getAllPathStops(allPaths);
+    }
+
+
+    public List<RouteEntity> getFoundRoutes(String search, String startDate, String endDate, String passengersNo){
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate startDateParsed = startDate.equals("null") ? null : LocalDate.parse(startDate, dateTimeFormatter);
         LocalDate endDateParsed = endDate.equals("null") ? null : LocalDate.parse(endDate, dateTimeFormatter);
@@ -326,22 +340,15 @@ public class RouteServiceImpl implements RouteService {
         }
 
         // Apply filter predicate
-        foundRoutes = routeRepository.findAll()
+        return routeRepository.findAll()
             .stream()
             .filter(filterPredicate)
             .toList();
-
-        if (foundRoutes.isEmpty()) {
-            throw new Exception("No routes found!");
-        }
-        return getAllPaths(foundRoutes, startLocation, endLocation);
     }
 
-    public Map<List<LinkEntity>, String> getAllPaths(List<RouteEntity> routes, String startLocation,
-                                                     String endLocation) throws Exception {
-        List<List<PathSegment>> allPaths = calculateAllPaths(routes, startLocation, endLocation);
-        Map<List<LinkEntity>, String> allPathsStops = new HashMap<>();
+    public Map<List<LinkEntity>, String> getAllPathStops(List<List<PathSegment>> allPaths) throws Exception {
 
+        Map<List<LinkEntity>, String> allPathsStops = new HashMap<>();
         for (List<PathSegment> path : allPaths) {
             List<LinkEntity> links = new ArrayList<>();
             for (PathSegment pathSegment : path) { // Asigurăm parcurgerea până la penultimul nod pentru a evita
@@ -377,8 +384,8 @@ public class RouteServiceImpl implements RouteService {
         return allPathsStops;
     }
 
-    public List<List<PathSegment>> calculateAllPaths(List<RouteEntity> routes, String startLocation,
-                                                     String endLocation) throws Exception {
+    public List<List<PathSegment>> calculatePaths(List<RouteEntity> routes, String startLocation,
+                                                     String endLocation, String type) throws Exception {
         Graph graph = buildGraph(routes);
         verifyTransferPoint(graph);
         List<List<PathSegment>> allPaths = new ArrayList<>();
@@ -407,7 +414,10 @@ public class RouteServiceImpl implements RouteService {
                 graph.addNode(endNode);
             }
             startNode.setIsTransferPoint(false);
-            allPaths = PathCalculator.findAllPaths(graph, startNode, endNode);
+            if(Objects.equals(type, "ALL"))
+                allPaths = DepthFirstSearch.findAllPaths(graph, startNode, endNode);
+            else if(Objects.equals(type, "SHORTEST"))
+                allPaths = AStar.calculateAllShortestPaths(graph, startNode, endNode);
         }
 
         return allPaths;
@@ -490,5 +500,19 @@ public class RouteServiceImpl implements RouteService {
         return timeMap;
     }
 
+    @Override
+    public Map<List<LinkEntity>,String> getShortestPath(String search, String startDate, String endDate, String startLocation,
+                                            String endLocation, String passengersNo) throws Exception {
+
+        List<RouteEntity> foundRoutes = getFoundRoutes(search, startDate, endDate, passengersNo);
+        if (foundRoutes.isEmpty()) {
+            return new HashMap<>();
+        }
+        List<List<PathSegment>> shortestPath = calculatePaths(foundRoutes, startLocation, endLocation, "SHORTEST");
+        if (shortestPath.isEmpty()) {
+            return new HashMap<>();
+        }
+        return getAllPathStops(shortestPath);
+    }
 
 }

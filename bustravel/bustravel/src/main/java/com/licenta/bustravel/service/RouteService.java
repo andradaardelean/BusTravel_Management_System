@@ -16,4 +16,6 @@ public interface RouteService {
     List<RouteEntity> getAll() throws Exception;
     Map<List<LinkEntity>, String> search(String search, String startDate, String endDate, String startLocation, String endLocation, String passangersNo) throws Exception;
     List<RouteEntity> getRoutesForCompany(String company) throws Exception;
+    Map<List<LinkEntity>,String> getShortestPath(String search, String startDate, String endDate, String startLocation,
+                                                 String endLocation, String passengersNo) throws Exception;
 }

@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -98,15 +97,21 @@ public class RouteController {
                                           @RequestParam(value = "endDate", required = false) String endDate,
                                           @RequestParam(value = "startLocation", required = false) String startLocation,
                                           @RequestParam(value = "endLocation", required = false) String endLocation,
-                                          @RequestParam(value = "passengersNo", required = false) String passangersNo) {
+                                          @RequestParam(value = "passengersNo", required = false) String passangersNo,
+                                          @RequestParam(value = "type", required = false) String type) {
         try {
             String token = authorizationHeader.substring(7);
             if (!jwtService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            Map<List<LinkEntity>, String> allPaths = routeService.search(search, startDate, endDate, startLocation,
-                endLocation, passangersNo);
+            Map<List<LinkEntity>, String> allPaths;
+            if (type == null || type.equals("all")) {
+                allPaths = routeService.search(search, startDate, endDate, startLocation, endLocation, passangersNo);
+            } else {
+                allPaths = routeService.getShortestPath(search, startDate, endDate, startLocation, endLocation,
+                    passangersNo);
+            }
             List<SearchResultDTO> result = allPaths.entrySet()
                 .stream()
                 .map(path -> {
@@ -114,7 +119,8 @@ public class RouteController {
                         .stream()
                         .map(LinkMapper::mapToDto)
                         .collect(Collectors.toList());
-                    String[] parts = path.getValue().split(" ");
+                    String[] parts = path.getValue()
+                        .split(" ");
 
                     // Reconstruct the distance and duration parts
                     String distance = parts[0] + " " + parts[1];
@@ -133,7 +139,7 @@ public class RouteController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Search failed! "+ ex.getMessage());
+                .body("Search failed! " + ex.getMessage());
         }
     }
 
@@ -189,5 +195,6 @@ public class RouteController {
         }
 
     }
+
 
 }

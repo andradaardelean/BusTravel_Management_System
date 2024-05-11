@@ -4,6 +4,7 @@ import com.licenta.bustravel.model.StopEntity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,8 +14,10 @@ import java.util.Map;
 @Setter
 public class Node {
     StopEntity stop;
-    private List<Node> shortestPath = new LinkedList<>();
+    private List<PathSegment> shortestPath = new LinkedList<>();
     private Long distance = Long.MAX_VALUE;
+    private LocalDateTime currentTime;
+    private Map<Integer, LocalDateTime> routeTimes = new HashMap<>();
     private Boolean isTransferPoint = false;
     private Map<Link, Long> adjacentNodes = new HashMap<>();
 
