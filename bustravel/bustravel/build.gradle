@@ -50,6 +50,25 @@ dependencies {
 	implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.16.1'
 	implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 
+	implementation 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+//	// https://mvnrepository.com/artifact/com.mashape.unirest/unirest-java
+//	implementation group: 'com.mashape.unirest', name: 'unirest-java', version: '1.4.9'
+	// https://mvnrepository.com/artifact/com.konghq/unirest-java
+	implementation group: 'com.konghq', name: 'unirest-java', version: '3.14.5'
+
+
+	//Auth0
+	implementation 'com.auth0:auth0-spring-security-api:1.3.0'
+	compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+	compileOnly 'com.auth0:mvc-auth-commons:1.+'
+	implementation 'com.auth0:java-jwt:4.4.0'
+	implementation 'org.springframework.security:spring-security-oauth2-resource-server'
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	//Tests
+	testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.4.0'
+	testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.4.0'
 }
 
 tasks.named('test') {

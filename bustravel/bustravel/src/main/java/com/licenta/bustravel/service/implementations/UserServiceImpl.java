@@ -1,17 +1,23 @@
 package com.licenta.bustravel.service.implementations;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.licenta.bustravel.email.EmailSender;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.UserService;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 import lombok.AllArgsConstructor;
+import org.json.simple.JSONObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -25,12 +31,55 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void add(UserEntity user) throws Exception {
+        String id = saveToOAuth(user);
         if (user.isValid(user.getPhone(), user.getEmail())) {
             String encodedPassword = passwordEncoder.encode(user.getPassword());
             user.setPassword(encodedPassword);
+            user.setOauthId(id);
             userRepository.save(user);
         } else
             throw new Exception("Invalid data");
+    }
+
+    public static String saveToOAuth(UserEntity user){
+        HttpResponse<JSONObject> response = Unirest.post("https://travel-management-system.eu.auth0.com/oauth/token")
+            .header("content-type", "application/json")
+            .body(
+                "{\"client_id\":\"OvxbQnJePNaihkjBLb0ythpweFosd2Is\"," +
+                    "\"client_secret\":\"jCukuVX3FxABz6D1Z-jAFaJwKxotJQcKVVkIARKKANqKte0dxKlDRE9oHd-5JMIM\"," +
+                    "\"audience\":\"https://travel-management-system.eu.auth0.com/api/v2/\"," +
+                    "\"grant_type\":\"client_credentials\"}").asObject(JSONObject.class);
+        String token = response.getBody()
+            .get("access_token")
+            .toString();
+        HttpResponse<JSONObject> response2 = Unirest.post("https://travel-management-system.eu.auth0.com/api/v2/users")
+            .header("content-type", "application/json")
+            .header("Authorization", "Bearer " + token)
+            .body(String.format("{\"email\": \"%s\", " +
+                    "\"user_metadata\": {}, " +
+                    "\"blocked\": false, " +
+                    "\"email_verified\": false, " +
+                    "\"app_metadata\": {}, " +
+                    "\"given_name\": \"%s\", " +
+                    "\"family_name\": \"%s\", " +
+                    "\"name\": \"%s\", " +
+                    "\"nickname\": \"%s\", " +
+                    "\"user_id\": \"\", " +
+                    "\"connection\": \"%s\", " +
+                    "\"password\": \"%s\", " +
+                    "\"verify_email\": false, " +
+                    "\"username\": \"%s\"}",
+                user.getEmail(),
+                user.getName(),
+                user.getName(),
+                user.getName(),
+                user.getName(),
+                "Username-Password-Authentication",
+                user.getPassword(),
+                user.getUsername()))
+            .asObject(JSONObject.class);
+
+        return response2.getBody().get("user_id").toString();
     }
 
     @Override

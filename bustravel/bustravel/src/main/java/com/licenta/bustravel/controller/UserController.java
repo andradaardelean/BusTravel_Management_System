@@ -11,17 +11,17 @@ import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.service.CompanyService;
 import com.licenta.bustravel.service.UserService;
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,8 +34,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.licenta.bustravel.service.implementations.UserServiceImpl.saveToOAuth;
 
 @RestController
 @RequestMapping("/api/user")
@@ -51,16 +54,18 @@ public class UserController {
     @Autowired
     private final CompanyService companyService;
 
-    private Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/login")
     public String login(@RequestBody AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(authRequest.getUsername(), authentication.getAuthorities());
-        } else
-            throw new UsernameNotFoundException("Invalid user request");
+//        saveToOAuth();
+//        Authentication authentication = authenticationManager.authenticate(
+//            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+//        if (authentication.isAuthenticated()) {
+//            return jwtService.generateToken(authRequest.getUsername(), authentication.getAuthorities());
+//        } else
+//            throw new UsernameNotFoundException("Invalid user request");
+        return "token";
     }
 
     @PostMapping("/signup")
@@ -224,7 +229,7 @@ public class UserController {
                     .userType(user.getUserType()
                         .toString())
                     .build();
-                if(foundUser != null) {
+                if (foundUser != null) {
                     return new ResponseEntity<>(foundUser, HttpStatus.OK);
                 }
             }

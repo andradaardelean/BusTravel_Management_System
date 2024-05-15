@@ -17,7 +17,7 @@ public class UserInfoService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UserEntity> user = userRepository.findByUsername(username);
+        Optional<UserEntity> user = userRepository.findByOauthId(username);
         return user.map(UserInfo::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username: "+ username+ " not found!"));
     }
