@@ -14,4 +14,5 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     Optional<UserEntity> findByUsername(String username);
     @Query("select user from UserEntity user where user.companyEntity.name=:company")
     List<UserEntity> findByCompany(String company);
+    Optional<UserEntity> findByOauthId(String oauthId);
 }

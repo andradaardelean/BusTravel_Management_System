@@ -11,4 +11,8 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
+okta:
+  oauth2:
+    audience: https://travel-management-system.eu.auth0.com/api/v2/
+    issuer: https://travel-management-system.eu.auth0.com/
 

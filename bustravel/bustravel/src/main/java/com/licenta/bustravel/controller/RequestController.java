@@ -3,10 +3,13 @@ package com.licenta.bustravel.controller;
 import com.licenta.bustravel.DTO.RequestDTO;
 import com.licenta.bustravel.DTO.mapper.CompanyMapper;
 import com.licenta.bustravel.DTO.mapper.RequestMapper;
+import com.licenta.bustravel.config.OAuthService;
 import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.enums.RequestType;
 import com.licenta.bustravel.service.RequestService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,13 +29,17 @@ public class RequestController {
     private final RequestService requestService;
     private final JwtService jwtService;
 
+    private final OAuthService auth0Service;
 
+    private final Logger LOGGER = LoggerFactory.getLogger(RequestController.class.getName());
 
     @GetMapping("/{status}")
     public ResponseEntity<?> getAllRequests(@RequestHeader("Authorization") String authorizationHeader, @PathVariable String status) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token))
+            String subjectId = auth0Service.validateToken(token);
+            LOGGER.info("SubjectId: " + subjectId);
+            if (subjectId.equals(""))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
 

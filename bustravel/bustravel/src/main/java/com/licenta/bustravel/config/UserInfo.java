@@ -14,7 +14,7 @@ public class UserInfo implements UserDetails {
     private String password;
     private List<GrantedAuthority> authorityList;
     public UserInfo(UserEntity user){
-        this.username = user.getUsername();
+        this.username = user.getOauthId();
         this.password = user.getPassword();
         this.authorityList = List.of(new SimpleGrantedAuthority(user.getUserType().toString()));
     }

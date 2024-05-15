@@ -39,6 +39,9 @@ public class UserEntity {
     @Column(name="token")
     private String token;
 
+    @Column(name="oauth_id", unique=true)
+    private String oauthId;
+
     @ManyToOne
     @JoinColumn(name="company_name", referencedColumnName = "name")
     private CompanyEntity companyEntity;
