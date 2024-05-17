@@ -171,5 +171,11 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Invalid token!");
     }
 
+    @Override
+    public UserEntity getByOauthId(String oauthId) {
+        return userRepository.findByOauthId(oauthId)
+            .orElse(null);
+    }
+
 
 }

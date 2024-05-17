@@ -7,6 +7,7 @@ import com.licenta.bustravel.DTO.ForgotPasswdDTO;
 import com.licenta.bustravel.DTO.UserDTO;
 import com.licenta.bustravel.DTO.UserSignUpDTO;
 import com.licenta.bustravel.config.JwtService;
+import com.licenta.bustravel.config.OAuthService;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.service.CompanyService;
@@ -45,14 +46,15 @@ import static com.licenta.bustravel.service.implementations.UserServiceImpl.save
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 public class UserController {
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
+
+    private final UserService userService;
+
+    private final JwtService jwtService;
+
+    private final AuthenticationManager authenticationManager;
+
     private final CompanyService companyService;
+    private final OAuthService oAuthService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
@@ -164,6 +166,30 @@ public class UserController {
                 .body("Modify user does not work. " + e.getMessage());
         }
         return ResponseEntity.ok("User modified successfully!");
+    }
+
+    @GetMapping("/token")
+    public ResponseEntity<?> getUserByToken(@RequestHeader("Authorization") String authorization) {
+        try {
+            String token = authorization.substring(7);
+            String userId = oAuthService.validateToken(token);
+            if (userId.equals(""))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token is not valid!");
+            UserEntity user = userService.getByOauthId(userId);
+            UserDTO userDTO = UserDTO.builder()
+                .username(user.getUsername())
+                .name(user.getName())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .userType(user.getUserType()
+                    .toString())
+                .build();
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Get user by token does not work. " + e.getMessage());
+        }
     }
 
     @GetMapping("/{username}")

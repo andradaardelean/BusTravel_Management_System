@@ -17,7 +17,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class StopServiceImplTest {
-
     @Mock
     private StopsRepository stopsRepository;
 
