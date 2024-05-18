@@ -183,6 +183,8 @@ public class UserController {
                 .email(user.getEmail())
                 .userType(user.getUserType()
                     .toString())
+                .company(user.getCompanyEntity() != null ? user.getCompanyEntity()
+                    .getName() : "")
                 .build();
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } catch (Exception e) {
