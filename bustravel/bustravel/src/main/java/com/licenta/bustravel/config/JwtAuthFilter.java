@@ -33,10 +33,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader("Authorization");
         String username = null;
+        LOGGER.log(INFO, "AuthorizationHeader: " + authorizationHeader);
         if (authorizationHeader != null && authorizationHeader.startsWith(
             "Bearer ")) {
             String token = authorizationHeader.substring(7);
-            if(oAuthService.isTokenValid(token)){
+            LOGGER.log(INFO, "Token: " + token);
+            if(!oAuthService.isTokenValid(token)){
+                LOGGER.log(INFO, "Token is not valid");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }

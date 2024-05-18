@@ -49,12 +49,14 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader("Authorization") String authorizationHeader) {
+        LOGGER.info("Login request");
         String token = authorizationHeader.substring(7);
         if(oAuthService.isTokenValid(token)) {
             String userId = oAuthService.getOAuthId();
             if(userId.equals(""))
                 return new ResponseEntity<>("Invalid user request", HttpStatus.BAD_REQUEST);
             UserEntity user = userService.getByOauthId(userId);
+            LOGGER.info("User: " + user);
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
             if (authentication.isAuthenticated()) {
@@ -162,7 +164,7 @@ public class UserController {
         return ResponseEntity.ok("User modified successfully!");
     }
 
-    @GetMapping("/token")
+    @GetMapping("/by/token")
     public ResponseEntity<?> getUserByToken(@RequestHeader("Authorization") String authorization) {
         try {
             String token = authorization.substring(7);

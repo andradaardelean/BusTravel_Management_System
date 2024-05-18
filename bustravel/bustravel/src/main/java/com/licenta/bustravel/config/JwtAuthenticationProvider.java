@@ -21,10 +21,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String token = (String) authentication.getCredentials();
-           if (jwtService.isTokenValid(token)) {
-                throw new UsernameNotFoundException("Invalid token");
-            }
         String id = jwtService.getOAuthId();
         if (id.equals("")) {
             throw new UsernameNotFoundException("Invalid token");
