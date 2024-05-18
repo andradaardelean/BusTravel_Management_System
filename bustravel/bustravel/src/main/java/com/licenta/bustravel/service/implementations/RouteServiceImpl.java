@@ -54,7 +54,7 @@ public class RouteServiceImpl implements RouteService {
         Authentication authentication = SecurityContextHolder.getContext()
             .getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username)
+        UserEntity userCurrent = userRepository.findByOauthId(username)
             .orElseThrow();
         if (userCurrent.getUserType()
             .equals(UserType.CLIENT)) {

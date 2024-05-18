@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext()
             .getAuthentication();
         String username = authentication.getName();
-        UserEntity currentUser = userRepository.findByUsername(username)
+        UserEntity currentUser = userRepository.findByOauthId(username)
             .orElseThrow();
         UserEntity userToModify = userRepository.findByUsername(user.getUsername())
             .orElse(null);
