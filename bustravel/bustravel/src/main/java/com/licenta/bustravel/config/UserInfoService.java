@@ -21,4 +21,10 @@ public class UserInfoService implements UserDetailsService {
         return user.map(UserInfo::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username: "+ username+ " not found!"));
     }
+
+    public UserDetails loadUserByOAuthId(String oAuthId) throws UsernameNotFoundException {
+        Optional<UserEntity> user = userRepository.findByOauthId(oAuthId);
+        return user.map(UserInfo::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User with oAuthId: "+ oAuthId+ " not found!"));
+    }
 }

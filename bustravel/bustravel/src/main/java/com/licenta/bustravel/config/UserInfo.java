@@ -10,11 +10,11 @@ import java.util.Collection;
 import java.util.List;
 
 public class UserInfo implements UserDetails {
-    private String username;
+    private String oAuthId;
     private String password;
     private List<GrantedAuthority> authorityList;
     public UserInfo(UserEntity user){
-        this.username = user.getOauthId();
+        this.oAuthId = user.getOauthId();
         this.password = user.getPassword();
         this.authorityList = List.of(new SimpleGrantedAuthority(user.getUserType().toString()));
     }
@@ -29,7 +29,7 @@ public class UserInfo implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return oAuthId;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,6 @@ public interface RouteRepository extends JpaRepository<RouteEntity, Integer>, Jp
 
     @Query("select route from RouteEntity route where route.companyEntity.name=:company")
     List<RouteEntity> findByCompany(String company);
+
+
 }

@@ -8,7 +8,6 @@ import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.CompanyService;
 import lombok.AllArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,14 +61,21 @@ public class CompanyServiceImpl implements CompanyService {
         }
         return new String(chars);
     }
-    @Override
-    public void add(CompanyEntity companyEntity) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    public void validateUserType() throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext()
+            .getAuthentication();
         String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username).orElseThrow();
-        if(!userCurrent.getUserType().equals(UserType.ADMIN)) {
+        UserEntity userCurrent = userRepository.findByUsername(username)
+            .orElseThrow();
+        if (!userCurrent.getUserType()
+            .equals(UserType.ADMIN)) {
             throw new Exception("Not allowed.");
         }
+    }
+    @Override
+    public void add(CompanyEntity companyEntity) throws Exception {
+        validateUserType();
         if (companyEntity.isValid(companyEntity.getPhone(), companyEntity.getOwnerEmail())) {
             try {
                 companyRepository.save(companyEntity);
@@ -101,6 +107,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public Optional<CompanyEntity> getById(int id) throws Exception {
+        validateUserType();
         return companyRepository.findById(id);
     }
 
@@ -111,16 +118,19 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public void modify(CompanyEntity companyEntity) throws Exception {
+        validateUserType();
         companyRepository.save(companyEntity);
     }
 
     @Override
     public void delete(CompanyEntity companyEntity) throws Exception {
+        validateUserType();
         companyRepository.delete(companyEntity);
     }
 
     @Override
     public List<CompanyEntity> getAll() throws Exception {
+        validateUserType();
         return companyRepository.findAll();
     }
 }

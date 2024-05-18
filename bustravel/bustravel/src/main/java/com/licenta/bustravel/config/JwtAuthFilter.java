@@ -15,17 +15,15 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import static java.util.logging.Level.INFO;
+
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-
-    private final JwtService jwtService;
-
-    private final OAuthService auth0Service;
+    private final OAuthService oAuthService;
 
     private final UserInfoService userInfoService;
-    public JwtAuthFilter(JwtService jwtService, OAuthService auth0Service, UserInfoService userInfoService) {
-        this.jwtService = jwtService;
-        this.auth0Service = auth0Service;
+    public JwtAuthFilter(OAuthService oAuthService, UserInfoService userInfoService) {
+        this.oAuthService = oAuthService;
         this.userInfoService = userInfoService;
     }
     private Logger LOGGER = Logger.getLogger(JwtAuthFilter.class.getName());
@@ -38,22 +36,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (authorizationHeader != null && authorizationHeader.startsWith(
             "Bearer ")) {
             String token = authorizationHeader.substring(7);
-            String subjectId = auth0Service.validateToken(token);
-            LOGGER.log(java.util.logging.Level.INFO, "SubjectId: " + subjectId);
-            if (subjectId.equals("")) {
+            if(oAuthService.isTokenValid(token)){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
-            username = userInfoService.loadUserByUsername(subjectId).getUsername();
+            String subjectId = oAuthService.getOAuthId();
+            LOGGER.log(INFO, "SubjectId: " + subjectId);
+            if(!subjectId.equals("")){
+                username = userInfoService.loadUserByOAuthId(subjectId).getUsername();
+            }
         }
-        LOGGER.log(java.util.logging.Level.INFO, "Username: " + username);
+        LOGGER.log(INFO, "Username: " + username);
         if (username != null && SecurityContextHolder.getContext()
             .getAuthentication() == null) {
 
             UserDetails userDetails = userInfoService.loadUserByUsername(username);
             LOGGER.info("UserDetails: " + userDetails);
             String token = authorizationHeader.substring(7);
-            if (!Objects.equals(auth0Service.validateToken(token), "")) {
+            if (oAuthService.isTokenValid(token)) {
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     userDetails, null);
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

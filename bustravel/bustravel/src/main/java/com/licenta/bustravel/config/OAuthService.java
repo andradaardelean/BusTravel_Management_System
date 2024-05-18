@@ -17,13 +17,14 @@ import java.security.interfaces.RSAPublicKey;
 
 @Service
 public class OAuthService {
+    DecodedJWT jwt;
     public static final String AUTH0_DOMAIN = "https://travel-management-system.eu.auth0.com/";
-    public String validateToken(String token){
+    public Boolean isTokenValid(String token){
         Logger logger = LoggerFactory.getLogger(OAuthService.class.getName());
         try {
         JwkProvider provider = new UrlJwkProvider(AUTH0_DOMAIN);
 
-            DecodedJWT jwt = JWT.decode(token);
+            jwt = JWT.decode(token);
             Jwk jwk = provider.get(jwt.getKeyId());
 
             Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
@@ -34,14 +35,17 @@ public class OAuthService {
 
             jwt = verifier.verify(token);
 
-            return jwt.getSubject();
-        } catch (JWTVerificationException e){
+            return true;
+        } catch (JWTVerificationException | JwkException e){
             e.printStackTrace();
-            return "";
-        } catch (JwkException e) {
-            e.printStackTrace();
-            return "";
+            return false;
         }
+    }
+
+    public String getOAuthId(){
+        if(isTokenValid(jwt.getToken()))
+            return jwt.getSubject();
+        return "";
     }
 
 }

@@ -4,7 +4,7 @@ import com.licenta.bustravel.DTO.AddBookingDTO;
 import com.licenta.bustravel.DTO.BookingLinkDTO;
 import com.licenta.bustravel.DTO.mapper.BookingMapper;
 import com.licenta.bustravel.DTO.mapper.LinkMapper;
-import com.licenta.bustravel.config.JwtService;
+import com.licenta.bustravel.config.OAuthService;
 import com.licenta.bustravel.model.BookingEntity;
 import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.service.BookingService;
@@ -31,14 +31,12 @@ import java.util.List;
 @CrossOrigin
 public class BookingController {
     private final BookingService bookingService;
-
-    private final JwtService jwtService;
-
+    private final OAuthService oAuthService;
     @GetMapping()
     public @ResponseBody ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String authorization) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             }
@@ -54,7 +52,7 @@ public class BookingController {
                                                                  @PathVariable String username) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
             List<List<BookingLinkDTO>> result = bookingService.getBookingsForUser(username)
@@ -75,7 +73,7 @@ public class BookingController {
                                                       @RequestBody AddBookingDTO addBookingDTO) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             }
@@ -98,7 +96,7 @@ public class BookingController {
                                                                @PathVariable int routeid) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
             return new ResponseEntity<>(BookingMapper.toDTOList(bookingService.getBookingsForRoute(routeid)),
@@ -114,7 +112,7 @@ public class BookingController {
                                                                @PathVariable int id) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
             List<BookingLinkDTO> links = bookingService.getBookingLinksForBooking(id)
@@ -133,7 +131,7 @@ public class BookingController {
                                                          @PathVariable int id) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             BookingEntity booking = bookingService.getById(id)
@@ -151,7 +149,7 @@ public class BookingController {
                                                                  @PathVariable String company) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             List<BookingLinkDTO> result = bookingService.getBookingsForCompany(company)

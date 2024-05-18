@@ -4,7 +4,6 @@ import com.licenta.bustravel.DTO.RequestDTO;
 import com.licenta.bustravel.DTO.mapper.CompanyMapper;
 import com.licenta.bustravel.DTO.mapper.RequestMapper;
 import com.licenta.bustravel.config.OAuthService;
-import com.licenta.bustravel.config.JwtService;
 import com.licenta.bustravel.model.enums.RequestType;
 import com.licenta.bustravel.service.RequestService;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +26,7 @@ import java.net.URI;
 @RequestMapping("/api/requests")
 public class RequestController {
     private final RequestService requestService;
-    private final JwtService jwtService;
-
+    private final OAuthService oAuthService;
     private final OAuthService auth0Service;
 
     private final Logger LOGGER = LoggerFactory.getLogger(RequestController.class.getName());
@@ -37,12 +35,11 @@ public class RequestController {
     public ResponseEntity<?> getAllRequests(@RequestHeader("Authorization") String authorizationHeader, @PathVariable String status) {
         try {
             String token = authorizationHeader.substring(7);
-            String subjectId = auth0Service.validateToken(token);
-            LOGGER.info("SubjectId: " + subjectId);
-            if (subjectId.equals(""))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
-
+            String subjectId = auth0Service.getOAuthId();
+            LOGGER.info("SubjectId: " + subjectId);
             return ResponseEntity.ok(requestService.getAllRequests(status)
                 .stream()
                 .map(RequestMapper::toRequestDTO)
@@ -56,7 +53,7 @@ public class RequestController {
     public ResponseEntity<?> makeRequest(@RequestHeader("Authorization") String authorizationHeader,@RequestBody RequestDTO requestDTO) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             if(RequestType.valueOf(requestDTO.getType()).equals(RequestType.COMPANY_APPLICATION)) {
@@ -73,13 +70,27 @@ public class RequestController {
     public ResponseEntity<?> solveRequest(@RequestHeader("Authorization") String authorizationHeader, @RequestBody RequestDTO requestDTO) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token already invalidated!");
             requestService.solveCompanyRequest(RequestMapper.toRequestEntity(requestDTO));
             return ResponseEntity.ok("Request resolved.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Resolve request does not work. " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reject")
+    public ResponseEntity<?> rejectRequest(@RequestHeader("Authorization") String authorizationHeader, @RequestBody RequestDTO requestDTO) {
+        try {
+            String token = authorizationHeader.substring(7);
+            if (!oAuthService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token already invalidated!");
+            requestService.rejectCompanyRequest(RequestMapper.toRequestEntity(requestDTO));
+            return ResponseEntity.ok("Request rejected.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Reject request does not work. " + e.getMessage());
         }
     }
 

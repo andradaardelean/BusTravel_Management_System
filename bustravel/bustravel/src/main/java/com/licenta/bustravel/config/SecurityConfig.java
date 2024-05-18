@@ -57,13 +57,12 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-    @Bean // configurarea filtrelor de securitate
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf(
-                csrf -> csrf.disable()) //Dezactivează protecția împotriva atacurilor CSRF (Cross-Site Request Forgery).
+                csrf -> csrf.disable())
             .cors(
-                cors -> cors.disable()) //  Dezactivează configurarea predefinită CORS pentru a permite cereri
-            // încrucișate din orice sursă.
+                cors -> cors.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS))
             .authenticationProvider(

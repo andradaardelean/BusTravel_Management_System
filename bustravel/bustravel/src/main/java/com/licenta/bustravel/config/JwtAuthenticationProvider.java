@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import java.util.Objects;
 
 public class JwtAuthenticationProvider implements AuthenticationProvider {
 
@@ -23,9 +22,11 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String token = (String) authentication.getCredentials();
-        String id = jwtService.validateToken(token);
-
-        if (Objects.equals(id, "")) {
+           if (jwtService.isTokenValid(token)) {
+                throw new UsernameNotFoundException("Invalid token");
+            }
+        String id = jwtService.getOAuthId();
+        if (id.equals("")) {
             throw new UsernameNotFoundException("Invalid token");
         }
 

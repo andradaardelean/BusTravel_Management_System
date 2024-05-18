@@ -19,7 +19,6 @@ import java.util.Map;
 public class RequestServiceImpl implements RequestService {
     private final CompanyService companyService;
     private final RequestRepository requestRepository;
-
     @Override
     public void makeCompanyRequest(RequestEntity request, CompanyEntity companyEntity) throws Exception {
         String requestDetails = createRequestDetailsForCompany(companyEntity);
@@ -46,6 +45,14 @@ public class RequestServiceImpl implements RequestService {
         requestRepository.save(requestEntity);
     }
 
+    @Override
+    public void rejectCompanyRequest(RequestEntity request) throws Exception {
+        RequestEntity requestEntity = requestRepository.findById(request.getId())
+            .orElseThrow(() -> new Exception("Request not found"));
+        requestEntity.setStatus(RequestStatus.REJECTED);
+        requestRepository.save(requestEntity);
+    }
+
     private String createRequestDetailsForCompany(CompanyEntity companyEntity) {
         Map<String, String> requestDetails = new HashMap<>();
         requestDetails.put("name", companyEntity.getName());
@@ -58,20 +65,16 @@ public class RequestServiceImpl implements RequestService {
 
     public static Map<String, String> stringToMap(String mapAsString) {
         Map<String, String> map = new HashMap<>();
-        // Remove the curly braces and any potential whitespace from the string
         String trimmedString = mapAsString.trim()
             .substring(1, mapAsString.length() - 1)
             .trim();
 
         if (!trimmedString.isEmpty()) {
-            // Split the string by commas to separate out the key-value pairs
             String[] keyValuePairs = trimmedString.split(",");
             for (String pair : keyValuePairs) {
-                // Split the pairs by equals sign to separate keys from values
                 String[] entry = pair.split("=");
-                // Trim key and value to remove any excess whitespace
                 String key = entry[0].trim();
-                String value = (entry.length > 1) ? entry[1].trim() : ""; // Handle missing values
+                String value = (entry.length > 1) ? entry[1].trim() : "";
                 map.put(key, value);
             }
         }
@@ -81,7 +84,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public void modifyRequest(RequestEntity request) throws Exception {
-
+        requestRepository.save(request);
     }
 
     @Override

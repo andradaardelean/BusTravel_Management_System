@@ -1,7 +1,5 @@
 package com.licenta.bustravel.service.implementations;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.licenta.bustravel.email.EmailSender;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
@@ -16,10 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -103,8 +100,10 @@ public class UserServiceImpl implements UserService {
         UserEntity userToModify = userRepository.findByUsername(user.getUsername())
             .orElse(null);
         if (currentUser.getUserType() == UserType.ADMIN || currentUser.getUsername()
-            .equals(user.getUsername()) || userToModify.getCompanyEntity()
+            .equals(user.getUsername()) || Objects.requireNonNull(userToModify)
+            .getCompanyEntity()
             .equals(currentUser.getCompanyEntity())) {
+            assert userToModify != null;
             user.setId(userToModify.getId());
             user.setPassword(userToModify.getPassword());
             if (user.getCompanyEntity() != null)

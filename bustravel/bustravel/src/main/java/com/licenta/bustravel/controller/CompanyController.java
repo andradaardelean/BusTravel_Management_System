@@ -2,10 +2,10 @@ package com.licenta.bustravel.controller;
 
 import com.licenta.bustravel.DTO.CompanyDTO;
 import com.licenta.bustravel.DTO.mapper.CompanyMapper;
-import com.licenta.bustravel.config.JwtService;
+import com.licenta.bustravel.config.OAuthService;
 import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.service.CompanyService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,17 +15,15 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/company")
+@RequiredArgsConstructor
 public class CompanyController {
-    @Autowired
-    private CompanyService companyService;
-    @Autowired
-    private JwtService jwtService;
-
+    private final CompanyService companyService;
+    private final OAuthService oAuthService;
     @PostMapping("/addCompany")
     public ResponseEntity<?> addCompany(@RequestHeader("Authorization") String authorizationHeader, @RequestBody CompanyDTO companyDTO){
         try{
             String token = authorizationHeader.substring(7);
-            if(!jwtService.isTokenValid(token)){
+            if(!oAuthService.isTokenValid(token)){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
             CompanyEntity companyEntity = new CompanyEntity(0,companyDTO.getName(), companyDTO.getDescription(), companyDTO.getOwnerName(), companyDTO.getOwnerEmail(), companyDTO.getPhone(), null, null);
@@ -40,7 +38,7 @@ public class CompanyController {
     public ResponseEntity<?> getCompanies(@RequestHeader("Authorization") String authorizationHeader){
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
             List<CompanyDTO> result = CompanyMapper.toDTOList(companyService.getAll());
@@ -54,7 +52,7 @@ public class CompanyController {
     public ResponseEntity<?> getCompanyByName(@RequestHeader("Authorization") String authorizationHeader, @PathVariable String name){
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
             CompanyDTO result = CompanyMapper.toDTO(companyService.getByName(name));
@@ -68,7 +66,7 @@ public class CompanyController {
     public ResponseEntity<?> modifyCompany(@RequestHeader("Authorization") String authorizationHeader, @PathVariable int id, @RequestBody CompanyDTO companyDTO){
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
             CompanyEntity companyEntity = new CompanyEntity(id,companyDTO.getName(), companyDTO.getDescription(), companyDTO.getOwnerName(), companyDTO.getOwnerEmail(), companyDTO.getPhone(), null, null);
@@ -83,7 +81,7 @@ public class CompanyController {
     public ResponseEntity<?> deleteCompany(@RequestHeader("Authorization") String authorizationHeader, @PathVariable int id){
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token invalid!");
             }
             CompanyEntity companyEntity = companyService.getById(id).orElseThrow();

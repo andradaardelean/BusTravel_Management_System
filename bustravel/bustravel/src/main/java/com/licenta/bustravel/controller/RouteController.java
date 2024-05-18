@@ -8,7 +8,7 @@ import com.licenta.bustravel.DTO.SearchResultDTO;
 import com.licenta.bustravel.DTO.mapper.LinkMapper;
 import com.licenta.bustravel.DTO.mapper.RouteMapper;
 import com.licenta.bustravel.DTO.mapper.StopMapper;
-import com.licenta.bustravel.config.JwtService;
+import com.licenta.bustravel.config.OAuthService;
 import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.StopEntity;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/routes")
 public class RouteController {
-    private final JwtService jwtService;
+    private final OAuthService oAuthService;
     private final RouteService routeService;
     private static final Logger LOGGER = LoggerFactory.getLogger(RouteController.class.getName());
 
@@ -51,7 +51,7 @@ public class RouteController {
         try {
             LOGGER.info("Add route request received");
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
@@ -77,7 +77,7 @@ public class RouteController {
                                          @RequestBody RemoveRoutesDTO routesDTO) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
@@ -101,7 +101,7 @@ public class RouteController {
                                           @RequestParam(value = "type", required = false) String type) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
@@ -148,7 +148,7 @@ public class RouteController {
                                      @PathVariable String id) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
@@ -166,7 +166,7 @@ public class RouteController {
                                                  @PathVariable String company) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
@@ -183,7 +183,7 @@ public class RouteController {
     public ResponseEntity<List<RouteDTO>> getAllRoutes(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token)) {
+            if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .build();
             }

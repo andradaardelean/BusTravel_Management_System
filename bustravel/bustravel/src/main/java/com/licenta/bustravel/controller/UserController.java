@@ -1,7 +1,5 @@
 package com.licenta.bustravel.controller;
 
-
-import com.licenta.bustravel.DTO.AuthRequest;
 import com.licenta.bustravel.DTO.ChangePasswordDTO;
 import com.licenta.bustravel.DTO.ForgotPasswdDTO;
 import com.licenta.bustravel.DTO.UserDTO;
@@ -12,17 +10,14 @@ import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.service.CompanyService;
 import com.licenta.bustravel.service.UserService;
-import kong.unirest.HttpResponse;
-import kong.unirest.JsonNode;
-import kong.unirest.Unirest;
 import lombok.RequiredArgsConstructor;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,11 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.licenta.bustravel.service.implementations.UserServiceImpl.saveToOAuth;
 
 @RestController
 @RequestMapping("/api/user")
@@ -48,26 +40,29 @@ import static com.licenta.bustravel.service.implementations.UserServiceImpl.save
 public class UserController {
 
     private final UserService userService;
-
-    private final JwtService jwtService;
-
-    private final AuthenticationManager authenticationManager;
-
     private final CompanyService companyService;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
     private final OAuthService oAuthService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping("/login")
-    public String login(@RequestBody AuthRequest authRequest) {
-//        saveToOAuth();
-//        Authentication authentication = authenticationManager.authenticate(
-//            new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-//        if (authentication.isAuthenticated()) {
-//            return jwtService.generateToken(authRequest.getUsername(), authentication.getAuthorities());
-//        } else
-//            throw new UsernameNotFoundException("Invalid user request");
-        return "token";
+    public ResponseEntity<?> login(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.substring(7);
+        if(oAuthService.isTokenValid(token)) {
+            String userId = oAuthService.getOAuthId();
+            if(userId.equals(""))
+                return new ResponseEntity<>("Invalid user request", HttpStatus.BAD_REQUEST);
+            UserEntity user = userService.getByOauthId(userId);
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+            if (authentication.isAuthenticated()) {
+                return ResponseEntity.ok().build();
+            } else
+                return ResponseEntity.badRequest().body("Invalid user request");
+        }
+        return new ResponseEntity<>("Token invalid!", HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("/signup")
@@ -94,10 +89,9 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.substring(7);
-        if (!jwtService.isTokenValid(token))
+        if (!oAuthService.isTokenValid(token))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("Token already invalidated!");
-        jwtService.invalidateToken(token);
         return ResponseEntity.ok("Logout successful!");
     }
 
@@ -123,7 +117,7 @@ public class UserController {
     public @ResponseBody ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = authorizationHeader.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             List<UserEntity> users = userService.getAll();
@@ -146,7 +140,7 @@ public class UserController {
         try {
             String token = authorization.substring(7);
             LOGGER.info("token: " + token);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             LOGGER.info("Modifying user -1: " + userDTO);
@@ -172,8 +166,11 @@ public class UserController {
     public ResponseEntity<?> getUserByToken(@RequestHeader("Authorization") String authorization) {
         try {
             String token = authorization.substring(7);
-            String userId = oAuthService.validateToken(token);
-            if (userId.equals(""))
+            if (!oAuthService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token is not valid!");
+            String userId = oAuthService.getOAuthId();
+            if(userId.equals(""))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             UserEntity user = userService.getByOauthId(userId);
@@ -197,7 +194,7 @@ public class UserController {
                                                @PathVariable String username) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             UserEntity user = userService.getByUsername(username);
@@ -217,7 +214,7 @@ public class UserController {
                                         @PathVariable String username) {
         try {
             String token = authorization.substring(7);
-            if (!jwtService.isTokenValid(token))
+            if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token is not valid!");
             UserEntity user = userService.getByUsername(username);

@@ -1,6 +1,7 @@
 package com.licenta.bustravel.service.implementations;
 
 import com.licenta.bustravel.controller.RouteController;
+import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.model.LinkEntity;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.StopEntity;
@@ -13,7 +14,6 @@ import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
 import com.licenta.bustravel.service.utils.AStar;
-import com.licenta.bustravel.service.utils.Dijkstra;
 import com.licenta.bustravel.service.utils.DistanceMatrix;
 import com.licenta.bustravel.service.utils.Graph;
 import com.licenta.bustravel.service.utils.Link;
@@ -225,16 +225,7 @@ public class RouteServiceImpl implements RouteService {
 
     @Override
     public void modify(RouteEntity routeEntity, List<StopEntity> stops) throws Exception {
-        Authentication authentication = SecurityContextHolder.getContext()
-            .getAuthentication();
-        String username = authentication.getName();
-        UserEntity userCurrent = userRepository.findByUsername(username)
-            .orElseThrow();
-        if (userCurrent.getUserType()
-            .equals(UserType.CLIENT)) {
-            throw new Exception("Not allowed.");
-        }
-
+        validateUserType();
         try {
             routeRepository.save(routeEntity);
         } catch (Exception e) {
@@ -513,6 +504,54 @@ public class RouteServiceImpl implements RouteService {
             return new HashMap<>();
         }
         return getAllPathStops(shortestPath);
+    }
+
+    public Double getKmPerDay(CompanyEntity companyEntity, LocalDate date) {
+        List<RouteEntity> routes = routeRepository.findByCompany(companyEntity.getName());
+        double km = 0.0;
+        for (RouteEntity route : routes) {
+            if(route.getStartDateTime().toLocalDate().isEqual(date)) {
+                for (LinkEntity link : route.getLinks()) {
+                    km += Double.parseDouble(link.getDistanceText().split(" ")[0]);
+                }
+            }
+        }
+        return km;
+    }
+
+    public Double getKmPerMonth(CompanyEntity companyEntity, LocalDate date) {
+        List<RouteEntity> routes = routeRepository.findByCompany(companyEntity.getName());
+        double km = 0.0;
+        for (RouteEntity route : routes) {
+            if(route.getStartDateTime().getMonth().equals(date.getMonth())) {
+                for (LinkEntity link : route.getLinks()) {
+                    km += Double.parseDouble(link.getDistanceText().split(" ")[0]);
+                }
+            }
+        }
+        return km;
+    }
+
+    public Double getMoneyPerDay(CompanyEntity companyEntity, LocalDate date) {
+        List<RouteEntity> routes = routeRepository.findByCompany(companyEntity.getName());
+        Double money = 0.0;
+        for (RouteEntity route : routes) {
+            if(route.getStartDateTime().toLocalDate().isEqual(date)) {
+                money += route.getPrice();
+            }
+        }
+        return money;
+    }
+
+    public Double getMoneyPerMonth(CompanyEntity companyEntity, LocalDate date) {
+        List<RouteEntity> routes = routeRepository.findByCompany(companyEntity.getName());
+        Double money = 0.0;
+        for (RouteEntity route : routes) {
+            if(route.getStartDateTime().getMonth().equals(date.getMonth())) {
+                money += route.getPrice();
+            }
+        }
+        return money;
     }
 
 }

@@ -13,8 +13,6 @@ import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.service.BookingService;
 import com.licenta.bustravel.service.UserService;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -37,7 +35,6 @@ public class BookingServiceImpl implements BookingService {
     private final RouteServiceImpl routeService;
     private final LinkRepository linkRepository;
     private final StopsRepository stopsRepository;
-    private final Logger LOGGER = LoggerFactory.getLogger(BookingServiceImpl.class);
 
     @Override
     public Integer add(BookingEntity booking, List<LinkEntity> links) throws Exception {
