@@ -3,6 +3,7 @@ package com.licenta.bustravel.DTO.mapper;
 import com.licenta.bustravel.DTO.RouteDTO;
 import com.licenta.bustravel.model.RouteEntity;
 import com.licenta.bustravel.model.enums.RecurrenceType;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,10 +12,12 @@ import java.util.List;
 
 public class RouteMapper {
     public static RouteDTO toDTO(RouteEntity route) {
+        String startDate = route.getStartDateTime().toString().split("T")[1].length() == 5 ? route.getStartDateTime() + ":00" : route.getStartDateTime().toString();
+        String endDate = route.getEndDateTime().toString().split("T")[1].length() == 5 ? route.getEndDateTime() + ":00" : route.getEndDateTime().toString();
         return RouteDTO.builder()
             .id(route.getId())
-            .startDateTime(route.getStartDateTime().toString())
-            .endDateTime(route.getEndDateTime().toString())
+            .startDateTime(startDate)
+            .endDateTime(endDate)
             .startLocation(route.getStartLocation())
             .endLocation(route.getEndLocation())
             .availableSeats(route.getAvailableSeats())
