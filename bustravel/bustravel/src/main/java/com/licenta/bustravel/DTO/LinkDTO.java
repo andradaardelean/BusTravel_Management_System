@@ -14,6 +14,8 @@ public class LinkDTO {
     String distance;
     String duration;
     Double price;
+    String startTime;
+    String endTime;
     int order;
 
 }
