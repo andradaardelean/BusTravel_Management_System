@@ -136,17 +136,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) {
-        List<BookingLinkEntity> bookingLinkEntitie = bookingLinkRepository.findAllByBookingId(bookingId);
-        List<BookingLinkEntity> bookingLinkEntities = bookingLinkRepository.findAllByBookingId(bookingId)
-            .stream()
-            .map(bookingLink -> {
-                Map<String, LocalDateTime> timeMap = routeService.getLinksTime(bookingLink.getLink());
-                bookingLink.setStartTime(timeMap.get("start"));
-                bookingLink.setEndTime(timeMap.get("end"));
-                return bookingLink;
-            })
-            .toList();
-        return bookingLinkEntities;
+        return bookingLinkRepository.findAllByBookingId(bookingId);
     }
 
     @Override
