@@ -42,7 +42,7 @@ public class BookingServiceImpl implements BookingService {
             Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
             String username = authentication.getName();
-            UserEntity user = userService.getByUsername(username);
+            UserEntity user = userService.getByOauthId(username);
             booking.setUserEntity(user);
             booking.setTime(LocalDateTime.now());
             BookingEntity savedBooking = bookingRepository.save(booking);
