@@ -155,15 +155,18 @@ public class RouteServiceImpl implements RouteService {
     public List<RouteEntity> createLinks(List<RouteEntity> routes, List<StopEntity> stops) {
         routes.forEach(route -> {
             LocalDateTime currentTime = route.getStartDateTime();
+            LOGGER.info("Current time: " + currentTime.toString());
             for (int i = 0; i < stops.size() - 1; i++) {
                 StopEntity fromStop = stops.get(i);
                 fromStop = stopsRepository.findStop(fromStop.getLocation(),
                     fromStop.getAddress()) != null ? stopsRepository.findStop(fromStop.getLocation(),
                     fromStop.getAddress()) : fromStop;
+                LOGGER.info("From stop: " + fromStop.toString());
                 StopEntity toStop = stops.get(i + 1);
                 toStop = stopsRepository.findStop(toStop.getLocation(),
                     toStop.getAddress()) != null ? stopsRepository.findStop(toStop.getLocation(),
                     toStop.getAddress()) : toStop;
+                LOGGER.info("To stop: " + toStop.toString());
                 Map<String, String> distanceMap = null;
                 try {
                     distanceMap = DistanceMatrix.parseData(
@@ -174,8 +177,10 @@ public class RouteServiceImpl implements RouteService {
                 if (distanceMap == null) {
                     LOGGER.error("Error while calculating distance between stops");
                 }
+                LOGGER.info("Distance map: " + distanceMap.toString());
                 Long duration = Long.parseLong(distanceMap.get("durationValue"));
                 LocalDateTime nextTime = currentTime.plusSeconds(duration);
+                LOGGER.info("Next time: " + nextTime.toString());
                 LinkEntity link = LinkEntity.builder()
                     .route(route)
                     .fromStop(fromStop)
@@ -189,6 +194,7 @@ public class RouteServiceImpl implements RouteService {
                     .startTime(currentTime)
                     .endTime(nextTime)
                     .build();
+                LOGGER.info("Link created: " + link.toString());
                 currentTime = nextTime;
                 if (i == stops.size() - 2) {
                     route.setEndDateTime(currentTime);
