@@ -37,8 +37,8 @@ import java.util.stream.Collectors;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/routes")
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class RouteController {
     private final OAuthService oAuthService;
     private final RouteService routeService;

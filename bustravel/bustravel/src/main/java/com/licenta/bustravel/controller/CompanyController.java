@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RequestMapping("api/company")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class CompanyController {
     private final CompanyService companyService;
     private final OAuthService oAuthService;

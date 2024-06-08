@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/stops")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class StopController {
     private final StopService stopService;
 

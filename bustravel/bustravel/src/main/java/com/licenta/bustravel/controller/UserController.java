@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class UserController {
 
     private final UserService userService;

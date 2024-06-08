@@ -28,7 +28,7 @@ import java.util.List;
 @Controller
 @RequestMapping("api/bookings")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class BookingController {
     private final BookingService bookingService;
     private final OAuthService oAuthService;

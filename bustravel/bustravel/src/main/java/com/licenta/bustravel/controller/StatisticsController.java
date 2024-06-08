@@ -5,6 +5,7 @@ import com.licenta.bustravel.service.statistics.AdminStatistics;
 import com.licenta.bustravel.service.statistics.CompanyStatistics;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/statistics")
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "https://travelmanagementsystem.onrender.com/", allowedHeaders = "*")
 public class StatisticsController {
     private final AdminStatistics adminStatistics;
     private final CompanyStatistics companyStatistics;
