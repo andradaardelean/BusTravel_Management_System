@@ -1,15 +1,27 @@
 package com.licenta.bustravel.DTO.mapper;
 
 import com.licenta.bustravel.DTO.RequestDTO;
+import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.model.RequestEntity;
 import com.licenta.bustravel.model.enums.RequestType;
+import com.licenta.bustravel.service.implementations.RequestServiceImpl;
+
+import java.util.Map;
 
 public class RequestMapper {
     public static RequestDTO toRequestDTO(RequestEntity request) {
+        Map<String, String> requestDetails = RequestServiceImpl.stringToMap(request.getRequestDetails());
+        CompanyEntity companyEntity = CompanyEntity.builder()
+                .name(requestDetails.get("name"))
+                .description(requestDetails.get("description"))
+                .ownerName(requestDetails.get("ownerName"))
+                .ownerEmail(requestDetails.get("ownerEmail"))
+                .phone(requestDetails.get("phone"))
+                .build();
         return RequestDTO.builder()
             .id(request.getId())
             .type(request.getType().toString())
-            .company(null)
+            .company(CompanyMapper.toDTO(companyEntity))
             .build();
     }
 

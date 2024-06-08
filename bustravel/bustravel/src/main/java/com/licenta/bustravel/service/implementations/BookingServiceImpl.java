@@ -122,15 +122,12 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingEntity> getBookingsForRoute(int routeId) throws Exception {
-        RouteEntity route = routeRepository.findById(routeId)
-            .orElseThrow(() -> new Exception("Route not found!"));
+    public List<BookingLinkEntity> getBookingsForRoute(int routeId) throws Exception {
         return bookingLinkRepository.findAll()
             .stream()
             .filter(bookingLink -> bookingLink.getLink()
                 .getRoute()
                 .getId() == routeId)
-            .map(BookingLinkEntity::getBooking)
             .toList();
     }
 

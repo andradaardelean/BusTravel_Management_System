@@ -15,7 +15,7 @@ public interface BookingService {
     List<BookingEntity> getAll();
     List<List<BookingLinkEntity>> getBookingsForUser(String username) throws Exception;
 
-    List<BookingEntity> getBookingsForRoute(int routeId) throws Exception;
+    List<BookingLinkEntity> getBookingsForRoute(int routeId) throws Exception;
     List<BookingLinkEntity> getBookingLinksForBooking(int bookingId) throws Exception;
 
     List<BookingLinkEntity> getBookingsForCompany(String company);

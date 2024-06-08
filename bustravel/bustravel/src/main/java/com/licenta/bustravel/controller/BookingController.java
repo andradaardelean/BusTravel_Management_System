@@ -93,13 +93,13 @@ public class BookingController {
 
     @GetMapping("/byRoute/{routeid}")
     public @ResponseBody ResponseEntity<?> getBookingsForRoute(@RequestHeader("Authorization") String authorization,
-                                                               @PathVariable int routeid) {
+                                                               @PathVariable("routeid") int routeId) {
         try {
             String token = authorization.substring(7);
             if (!oAuthService.isTokenValid(token))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
-            return new ResponseEntity<>(BookingMapper.toDTOList(bookingService.getBookingsForRoute(routeid)),
+            return new ResponseEntity<>(bookingService.getBookingsForRoute(routeId).stream().map(BookingMapper::toBookingLinkDTO).toList(),
                 HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -162,4 +162,5 @@ public class BookingController {
                 .body("Get bookings for company does not work. " + e.getMessage());
         }
     }
+
 }
