@@ -50,12 +50,8 @@ public class RequestController {
     }
 
     @PostMapping
-    public ResponseEntity<?> makeRequest(@RequestHeader("Authorization") String authorizationHeader,@RequestBody RequestDTO requestDTO) {
+    public ResponseEntity<?> makeRequest(@RequestBody RequestDTO requestDTO) {
         try {
-            String token = authorizationHeader.substring(7);
-            if (!oAuthService.isTokenValid(token))
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Token already invalidated!");
             if(RequestType.valueOf(requestDTO.getType()).equals(RequestType.COMPANY_APPLICATION)) {
                 requestService.makeCompanyRequest(RequestMapper.toRequestEntity(requestDTO), CompanyMapper.toModel(requestDTO.getCompany()));
                 return ResponseEntity.created(new URI("/api/requests")).build();

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.licenta'
-version = '0.0.1-SNAPSHOT'
+version = '1'
 
 java {
 	sourceCompatibility = '17'
@@ -69,6 +69,13 @@ dependencies {
 	//Tests
 	testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.4.0'
 	testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.4.0'
+
+
+	//PDF
+	implementation group: 'org.apache.pdfbox', name: 'pdfbox', version: '3.0.1'
+	implementation group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.3'
+
+
 }
 
 tasks.named('test') {
