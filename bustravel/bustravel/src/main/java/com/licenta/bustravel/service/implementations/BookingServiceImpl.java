@@ -99,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
                 .collect(Collectors.toSet());
             uniqueRoutes.forEach(
                 route -> route.setAvailableSeats(route.getAvailableSeats() - booking.getPassegersNo()));
+            bookingLinkRepository.deleteAll(bookingLinks);
             bookingRepository.delete(booking);
             System.out.println("Deleted booking: " + booking);
         } catch (Exception ex) {
