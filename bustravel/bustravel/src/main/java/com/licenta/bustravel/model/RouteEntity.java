@@ -58,6 +58,9 @@ public class RouteEntity {
     @Enumerated(EnumType.STRING)
     private RecurrenceType recurrenceType;
 
+    @OneToMany(mappedBy = "route",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
+    private List<LinkEntity> links = new ArrayList<>();
+
     @Override
     public String toString() {
         return "RouteEntity{" + "id=" + id + ", startDateTime=" + startDateTime + ", endDateTime=" + endDateTime + "," +
@@ -66,6 +69,5 @@ public class RouteEntity {
                 "reccurencyNo=" + reccurencyNo + ", recurrenceType=" + recurrenceType + '}';
     }
 
-    @OneToMany(mappedBy = "route",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private List<LinkEntity> links = new ArrayList<>();
+
 }
