@@ -40,9 +40,15 @@ public class RequestServiceImpl implements RequestService {
             .ownerEmail(requestDetails.get("ownerEmail"))
             .phone(requestDetails.get("phone"))
             .build();
-        companyService.add(companyEntity);
-        requestEntity.setStatus(RequestStatus.APPROVED);
-        requestRepository.save(requestEntity);
+        try {
+            companyService.add(companyEntity);
+            requestEntity.setStatus(RequestStatus.APPROVED);
+            requestRepository.save(requestEntity);
+        } catch (Exception e) {
+            requestEntity.setRequestDetails(e.getMessage());
+            requestEntity.setStatus(RequestStatus.REJECTED);
+            requestRepository.save(requestEntity);
+        }
     }
 
     @Override
