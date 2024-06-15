@@ -11,4 +11,5 @@ public class RequestDTO {
     int id;
     String type;
     CompanyDTO company;
+    String status;
 }

@@ -3,6 +3,7 @@ package com.licenta.bustravel.DTO.mapper;
 import com.licenta.bustravel.DTO.RequestDTO;
 import com.licenta.bustravel.model.CompanyEntity;
 import com.licenta.bustravel.model.RequestEntity;
+import com.licenta.bustravel.model.enums.RequestStatus;
 import com.licenta.bustravel.model.enums.RequestType;
 import com.licenta.bustravel.service.implementations.RequestServiceImpl;
 
@@ -22,6 +23,7 @@ public class RequestMapper {
             .id(request.getId())
             .type(request.getType().toString())
             .company(CompanyMapper.toDTO(companyEntity))
+            .status(request.getStatus().toString())
             .build();
     }
 
@@ -30,6 +32,7 @@ public class RequestMapper {
             .id(request.getId())
             .type(RequestType.valueOf(request.getType()))
             .requestDetails(null)
+            .status(null)
             .build();
     }
 
