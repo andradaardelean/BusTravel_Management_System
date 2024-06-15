@@ -32,20 +32,25 @@ public class RequestServiceImpl implements RequestService {
     public void solveCompanyRequest(RequestEntity request) throws Exception {
         RequestEntity requestEntity = requestRepository.findById(request.getId())
             .orElseThrow(() -> new Exception("Request not found"));
-        Map<String, String> requestDetails = stringToMap(requestEntity.getRequestDetails());
-        CompanyEntity companyEntity = CompanyEntity.builder()
-            .name(requestDetails.get("name"))
-            .description(requestDetails.get("description"))
-            .ownerName(requestDetails.get("ownerName"))
-            .ownerEmail(requestDetails.get("ownerEmail"))
-            .phone(requestDetails.get("phone"))
-            .build();
-        try {
-            companyService.add(companyEntity);
-            requestEntity.setStatus(RequestStatus.APPROVED);
-            requestRepository.save(requestEntity);
-        } catch (Exception e) {
-            requestEntity.setRequestDetails(e.getMessage());
+        if(request.getStatus().equals(RequestStatus.APPROVED)) {
+            Map<String, String> requestDetails = stringToMap(requestEntity.getRequestDetails());
+            CompanyEntity companyEntity = CompanyEntity.builder()
+                .name(requestDetails.get("name"))
+                .description(requestDetails.get("description"))
+                .ownerName(requestDetails.get("ownerName"))
+                .ownerEmail(requestDetails.get("ownerEmail"))
+                .phone(requestDetails.get("phone"))
+                .build();
+            try {
+                companyService.add(companyEntity);
+                requestEntity.setStatus(RequestStatus.APPROVED);
+                requestRepository.save(requestEntity);
+            } catch (Exception e) {
+                requestEntity.setRequestDetails(e.getMessage());
+                requestRepository.save(requestEntity);
+                throw new Exception("Company details are not valid.");
+            }
+        } else if (request.getStatus().equals(RequestStatus.REJECTED)) {
             requestEntity.setStatus(RequestStatus.REJECTED);
             requestRepository.save(requestEntity);
         }

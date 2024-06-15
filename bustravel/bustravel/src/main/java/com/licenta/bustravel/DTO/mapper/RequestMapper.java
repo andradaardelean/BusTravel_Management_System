@@ -44,7 +44,7 @@ public class RequestMapper {
             .id(request.getId())
             .type(RequestType.valueOf(request.getType()))
             .requestDetails(null)
-            .status(null)
+            .status(request.getStatus().equals("") ? RequestStatus.PENDING : RequestStatus.valueOf(request.getStatus()))
             .build();
     }
 
