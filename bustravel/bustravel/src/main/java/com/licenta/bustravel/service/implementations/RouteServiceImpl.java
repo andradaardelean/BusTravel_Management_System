@@ -8,6 +8,8 @@ import com.licenta.bustravel.model.StopEntity;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.RecurrenceType;
 import com.licenta.bustravel.model.enums.UserType;
+import com.licenta.bustravel.repositories.BookingLinkRepository;
+import com.licenta.bustravel.repositories.BookingRepository;
 import com.licenta.bustravel.repositories.LinkRepository;
 import com.licenta.bustravel.repositories.RouteRepository;
 import com.licenta.bustravel.repositories.StopsRepository;
@@ -39,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -49,6 +52,8 @@ public class RouteServiceImpl implements RouteService {
     private final RouteRepository routeRepository;
     private final StopsRepository stopsRepository;
     private final LinkRepository linkRepository;
+    private final BookingRepository bookingRepository;
+    private final BookingLinkRepository bookingLinkRepository;
 
     public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -269,6 +274,13 @@ public class RouteServiceImpl implements RouteService {
             routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
         if (routeToRemove == null) {
             throw new Exception("Route not found!");
+        }
+        List<LinkEntity> linksWithBookings = linkRepository.findAllByRoute(routeToRemove).stream()
+            .filter(bookingLinkRepository::existsBookingLinkEntityByLink)
+            .toList();
+
+        if (!linksWithBookings.isEmpty()) {
+            throw new Exception("Route has bookings!");
         }
         try {
             if (Boolean.TRUE.equals(removeAll)) {

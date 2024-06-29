@@ -12,4 +12,5 @@ import java.util.List;
 public interface LinkRepository extends JpaRepository<LinkEntity, Integer> {
     LinkEntity findByFromStopAndToStopAndRoute(StopEntity fromStop, StopEntity toStop, RouteEntity route);
     List<LinkEntity> findAllByRouteIdOrderByOrder(int routeId);
+    List<LinkEntity> findAllByRoute(RouteEntity route);
 }
