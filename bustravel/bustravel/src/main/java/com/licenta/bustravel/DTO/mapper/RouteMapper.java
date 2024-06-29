@@ -27,7 +27,7 @@ public class RouteMapper {
     }
 
     public static RouteEntity toModel(RouteDTO route, Integer reccurencyNo, RecurrenceType recurrenceType) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         return RouteEntity.builder()
             .id(route.getId())
             .startDateTime(LocalDateTime.parse(route.getStartDateTime(), formatter))
