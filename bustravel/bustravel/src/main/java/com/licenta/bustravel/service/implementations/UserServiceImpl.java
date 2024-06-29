@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Invalid data");
     }
 
-    public static String saveToOAuth(UserEntity user){
+    public static String saveToOAuth(UserEntity user) throws Exception {
         HttpResponse<JSONObject> response = Unirest.post("https://travel-management-system.eu.auth0.com/oauth/token")
             .header("content-type", "application/json")
             .body(
@@ -76,7 +76,14 @@ public class UserServiceImpl implements UserService {
                 user.getUsername()))
             .asObject(JSONObject.class);
 
-        return response2.getBody().get("user_id").toString();
+        if(response2.getBody()
+            .get("user_id") == null){
+            throw new Exception(response2.getBody().get("message").toString());
+        }else {
+            return response2.getBody()
+                .get("user_id")
+                .toString();
+        }
     }
 
     @Override

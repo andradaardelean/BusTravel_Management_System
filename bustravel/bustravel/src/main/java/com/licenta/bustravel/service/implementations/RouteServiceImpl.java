@@ -296,13 +296,16 @@ public class RouteServiceImpl implements RouteService {
     @Override
     public Map<List<LinkEntity>, String> search(String search, String startDate, String endDate, String startLocation,
                                                 String endLocation, String passengersNo) throws Exception {
-
-        List<RouteEntity> foundRoutes = getFoundRoutes(search, startDate, endDate, passengersNo);
-        if (foundRoutes.isEmpty()) {
-            throw new Exception("No routes found!");
+        try {
+            List<RouteEntity> foundRoutes = getFoundRoutes(search, startDate, endDate, passengersNo);
+            if (foundRoutes.isEmpty()) {
+                throw new Exception("No routes found!");
+            }
+            List<List<PathSegment>> allPaths = calculatePaths(foundRoutes, startLocation, endLocation, "ALL");
+            return getAllPathStops(allPaths);
+        }catch(Exception e){
+            throw new Exception("Search failed!" + e.getMessage());
         }
-        List<List<PathSegment>> allPaths = calculatePaths(foundRoutes, startLocation, endLocation, "ALL");
-        return getAllPathStops(allPaths);
     }
 
 
@@ -406,6 +409,9 @@ public class RouteServiceImpl implements RouteService {
         if (startLocationEntity != null && endLocationEntity != null) {
             Node startNode = graph.getNodeByStop(startLocationEntity);
             Node endNode = graph.getNodeByStop(endLocationEntity);
+            if(startNode == null){
+                throw new Exception("No routes found!");
+            }
             if (endNode == null) {
                 endNode = new Node(endLocationEntity);
                 graph.addNode(endNode);
