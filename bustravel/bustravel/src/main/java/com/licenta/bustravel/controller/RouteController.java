@@ -91,8 +91,7 @@ public class RouteController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<?> searchRoutes(@RequestHeader("Authorization") String authorizationHeader,
-                                          @RequestParam(value = "search", required = false) String search,
+    public ResponseEntity<?> searchRoutes(@RequestParam(value = "search", required = false) String search,
                                           @RequestParam(value = "startDate", required = false) String startDate,
                                           @RequestParam(value = "endDate", required = false) String endDate,
                                           @RequestParam(value = "startLocation", required = false) String startLocation,
@@ -100,17 +99,15 @@ public class RouteController {
                                           @RequestParam(value = "passengersNo", required = false) String passangersNo,
                                           @RequestParam(value = "type", required = false) String type) {
         try {
-            String token = authorizationHeader.substring(7);
-            if (!oAuthService.isTokenValid(token)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Token invalid!");
-            }
             Map<List<LinkEntity>, String> allPaths;
             if (type == null || type.equals("all")) {
                 allPaths = routeService.search(search, startDate, endDate, startLocation, endLocation, passangersNo);
             } else {
                 allPaths = routeService.getShortestPath(search, startDate, endDate, startLocation, endLocation,
                     passangersNo);
+            }
+            if(allPaths.isEmpty()){
+                return ResponseEntity.noContent().build();
             }
             List<SearchResultDTO> result = allPaths.entrySet()
                 .stream()

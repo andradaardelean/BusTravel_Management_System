@@ -311,7 +311,7 @@ public class RouteServiceImpl implements RouteService {
         try {
             List<RouteEntity> foundRoutes = getFoundRoutes(search, startDate, endDate, passengersNo);
             if (foundRoutes.isEmpty()) {
-                throw new Exception("No routes found!");
+                return new HashMap<>();
             }
             List<List<PathSegment>> allPaths = calculatePaths(foundRoutes, startLocation, endLocation, "ALL");
             return getAllPathStops(allPaths);

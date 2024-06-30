@@ -230,6 +230,11 @@ public class UserController {
         return ResponseEntity.ok("User deleted successfully!");
     }
 
+    @GetMapping("/isOwner/{email}")
+    public ResponseEntity<Boolean> isOwner(@PathVariable String email) {
+        return ResponseEntity.ok(userService.isOwner(email));
+    }
+
     @PutMapping("/forgotPassword")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswdDTO userDTO) {
         try {

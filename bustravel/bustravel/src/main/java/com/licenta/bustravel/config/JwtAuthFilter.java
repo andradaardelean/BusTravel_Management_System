@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             LOGGER.log(INFO, "Token: " + token);
             if(!oAuthService.isTokenValid(token)){
                 LOGGER.log(INFO, "Token is not valid");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                //response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
             String subjectId = oAuthService.getOAuthId();

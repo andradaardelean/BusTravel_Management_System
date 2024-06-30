@@ -18,5 +18,6 @@ public interface UserService {
     UserEntity checkToken(String username, String token);
     void changePassword(String username, String password, String token) throws Exception;
     UserEntity getByOauthId(String oauthId);
+    Boolean isOwner(String email);
 }
 

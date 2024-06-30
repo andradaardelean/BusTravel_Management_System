@@ -11,4 +11,6 @@ public interface CompanyRepository extends JpaRepository<CompanyEntity, Integer>
     Optional<CompanyEntity> findByName(String name);
     @Query("select company from CompanyEntity company where company.name=:name")
     CompanyEntity getByName(String name);
+
+    Boolean existsByOwnerEmail(String email);
 }

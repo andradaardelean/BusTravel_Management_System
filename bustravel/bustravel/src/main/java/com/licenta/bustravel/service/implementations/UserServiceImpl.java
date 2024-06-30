@@ -3,6 +3,7 @@ package com.licenta.bustravel.service.implementations;
 import com.licenta.bustravel.email.EmailSender;
 import com.licenta.bustravel.model.UserEntity;
 import com.licenta.bustravel.model.enums.UserType;
+import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.UserService;
 import kong.unirest.HttpResponse;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -124,7 +126,10 @@ public class UserServiceImpl implements UserService {
     public void delete(UserEntity user) throws Exception {
         userRepository.delete(userRepository.findByUsername(user.getUsername())
             .orElseThrow());
+    }
 
+    public Boolean isOwner(String email) {
+        return companyRepository.existsByOwnerEmail(email);
     }
 
     @Override
