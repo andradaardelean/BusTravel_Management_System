@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,6 +58,9 @@ public class RouteEntity {
     @Column(name = "recurrence_type")
     @Enumerated(EnumType.STRING)
     private RecurrenceType recurrenceType;
+
+    @Column(name = "recurrence_end_date")
+    private LocalDate recurrenceEndDate;
 
     @OneToMany(mappedBy = "route",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     private List<LinkEntity> links = new ArrayList<>();

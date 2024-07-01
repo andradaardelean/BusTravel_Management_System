@@ -12,4 +12,5 @@ import java.util.List;
         List<Integer> days;
         Integer everyNo;
         RecurrenceType recurrenceType;
+        String endDate;
 }

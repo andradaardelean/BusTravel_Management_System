@@ -75,7 +75,7 @@ public class RouteServiceImpl implements RouteService {
         return userCurrent;
     }
 
-    public List<RouteEntity> generateForWeekReccurency(RouteEntity route, List<Integer> days, Integer everyNo) {
+    public List<RouteEntity> generateForWeekReccurency(RouteEntity route, List<Integer> days, Integer everyNo, LocalDate endOfRecurrence) {
         List<RouteEntity> routes = new ArrayList<>();
         LocalDateTime initialStartDate = route.getStartDateTime();
         LocalDateTime initialEndDate = route.getEndDateTime();
@@ -106,13 +106,14 @@ public class RouteServiceImpl implements RouteService {
                             .totalSeats(route.getTotalSeats())
                             .reccurencyNo(route.getReccurencyNo())
                             .recurrenceType(route.getRecurrenceType())
+                            .recurrenceEndDate(endOfRecurrence)
                             .links(route.getLinks())
                             .companyEntity(route.getCompanyEntity())
                             .build();
                         routes.add(newRoute);
                         startDate = startDate.plusDays(7L + 7L * (everyNo - 1));
                         endDate = endDate.plusDays(7L + 7L * (everyNo - 1));
-                    } while (endDate.isBefore(LocalDateTime.parse("2025-01-01T00:00:00")));
+                    } while (endDate.isBefore(endOfRecurrence.atStartOfDay()));
                     days.remove(currentDay);
                 }
             }
@@ -121,7 +122,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     public List<RouteEntity> generateForDayReccurency(RouteEntity route, Integer everyNo, LocalDateTime startDate,
-                                                      LocalDateTime endDate) {
+                                                      LocalDateTime endDate, LocalDate endOfRecurrence) {
         List<RouteEntity> routes = new ArrayList<>();
         do {
             RouteEntity newRoute = RouteEntity.builder()
@@ -134,17 +135,18 @@ public class RouteServiceImpl implements RouteService {
                 .totalSeats(route.getTotalSeats())
                 .reccurencyNo(route.getReccurencyNo())
                 .recurrenceType(route.getRecurrenceType())
+                .recurrenceEndDate(endOfRecurrence)
                 .links(route.getLinks())
                 .companyEntity(route.getCompanyEntity())
                 .build();
             routes.add(newRoute);
             startDate = startDate.plusDays(everyNo);
             endDate = endDate.plusDays(everyNo);
-        } while (endDate.isBefore(LocalDateTime.parse("2025-01-01T00:00:00")));
+        } while (endDate.isBefore(endOfRecurrence.atStartOfDay()));
         return routes;
     }
 
-    public List<RouteEntity> generateRoutes(RouteEntity route, List<Integer> days) {
+    public List<RouteEntity> generateRoutes(RouteEntity route, List<Integer> days, LocalDate endOfRecurrence) {
         LocalDateTime startDate = route.getStartDateTime();
         LocalDateTime endDate = route.getEndDateTime();
         List<RouteEntity> routes = new ArrayList<>();
@@ -156,10 +158,10 @@ public class RouteServiceImpl implements RouteService {
             routes.add(route);
         } else if (recurrenceType == RecurrenceType.DAY) {
             LOGGER.info("Day recurrence");
-            routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate));
+            routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate, endOfRecurrence));
         } else if (recurrenceType == RecurrenceType.WEEK) {
             LOGGER.info("Week recurrence");
-            routes.addAll(generateForWeekReccurency(route, days, everyNo));
+            routes.addAll(generateForWeekReccurency(route, days, everyNo, endOfRecurrence));
         }
         return routes;
     }
@@ -224,11 +226,11 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days) throws Exception {
+    public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days, LocalDate endOfRecurrence) throws Exception {
         try {
             UserEntity user = validateUserType();
             route.setCompanyEntity(user.getCompanyEntity());
-            List<RouteEntity> routes = generateRoutes(route, days);
+            List<RouteEntity> routes = generateRoutes(route, days, endOfRecurrence);
             routes = createLinks(routes, stops);
             routeRepository.saveAll(routes);
         } catch (Exception ex) {
@@ -270,7 +272,8 @@ public class RouteServiceImpl implements RouteService {
                 currentEnd = currentEnd.plusDays(7L * routeEntity.getReccurencyNo());
             }
 
-        } while (currentEnd.isBefore((LocalDateTime.parse("2025-01-01T00:00:00"))));
+        } while (currentEnd.isBefore(routeEntity.getRecurrenceEndDate()
+            .atStartOfDay()));
         return result;
     }
 

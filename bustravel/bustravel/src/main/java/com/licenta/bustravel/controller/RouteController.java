@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,7 +65,8 @@ public class RouteController {
                 .getRecurrenceType());
             LOGGER.info("Route and stops mapped");
             routeService.add(routeEntity, stopEntities, addRouteDTO.getRecurrenceDTO()
-                .getDays());
+                .getDays(), LocalDate.parse(addRouteDTO.getRecurrenceDTO().getEndDate(),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             LOGGER.info("Route added successfully");
             return ResponseEntity.ok("Route added successfully!");
         } catch (Exception ex) {

@@ -18,6 +18,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 @AllArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
@@ -35,25 +36,29 @@ public class CompanyServiceImpl implements CompanyService {
         String passwordChars = charLower + charUpper + digit + specialChar;
 
         StringBuilder password = new StringBuilder();
-        password.append(getRandomChar(charLower));
-        password.append(getRandomChar(charUpper));
-        password.append(getRandomChar(digit));
-        password.append(getRandomChar(specialChar));
+        SecureRandom random = new SecureRandom();
 
-        for (int i = 4; i < 8; i++) {
-            password.append(getRandomChar(passwordChars));
+        // Adaugă câte un caracter din fiecare categorie pentru a asigura criteriile minime
+        password.append(getRandomChar(charLower, random));
+        password.append(getRandomChar(charUpper, random));
+        password.append(getRandomChar(digit, random));
+        password.append(getRandomChar(specialChar, random));
+
+        // Adaugă caractere suplimentare până ajungem la cel puțin 10 caractere
+        for (int i = 4; i < 10; i++) {
+            password.append(getRandomChar(passwordChars, random));
         }
 
         // Shuffle the characters in the password to make it more random
-        return shuffleString(password.toString());
+        return shuffleString(password.toString(), random);
     }
 
-    private static char getRandomChar(String source) {
-        int randomIndex = new SecureRandom().nextInt(source.length());
+    private static char getRandomChar(String source, SecureRandom random) {
+        int randomIndex = random.nextInt(source.length());
         return source.charAt(randomIndex);
     }
 
-    private static String shuffleString(String input) {
+    private static String shuffleString(String input, SecureRandom random) {
         char[] chars = input.toCharArray();
         for (int i = chars.length - 1; i > 0; i--) {
             int index = new SecureRandom().nextInt(i + 1);
@@ -63,6 +68,28 @@ public class CompanyServiceImpl implements CompanyService {
         }
         return new String(chars);
     }
+
+    private static String generateOwnerUsername(String ownerEmail) {
+        String usernameBase = ownerEmail.substring(0, ownerEmail.indexOf('@'));
+        int maxLength = 14;
+
+        StringBuilder ownerUsername = new StringBuilder(usernameBase);
+
+        // Ensure the username does not exceed maxLength
+        if (ownerUsername.length() > maxLength) {
+            ownerUsername.setLength(maxLength);
+        } else {
+            // If username is shorter than maxLength, append sequential characters
+            int additionalChars = maxLength - ownerUsername.length();
+            for (int i = 0; i < additionalChars; i++) {
+                ownerUsername.append((char) ('a' + i % 26)); // Appends 'a' to 'z' sequentially
+            }
+        }
+
+        return ownerUsername.toString();
+    }
+
+
 
     public void validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -82,7 +109,8 @@ public class CompanyServiceImpl implements CompanyService {
             try {
                 companyRepository.save(companyEntity);
                 String ownerEmail = companyEntity.getOwnerEmail();
-                String ownerUsername = ownerEmail.substring(0, ownerEmail.indexOf('@')) + getRandomChar("asdahbdjadahsxdau4273e2hedqw9218edbcjass");
+                String ownerUsername = generateOwnerUsername(ownerEmail);
+
                 String password = generatePassword();
                 UserEntity owner = UserEntity.builder()
                     .username(ownerUsername)
@@ -93,11 +121,11 @@ public class CompanyServiceImpl implements CompanyService {
                     .userType(UserType.COMPANYEMPLOYEE)
                     .companyEntity(companyEntity)
                     .build();
-                owner.setPassword(passwordEncoder.encode(password));
+//                owner.setPassword(passwordEncoder.encode(password));
                 userService.add(owner);
                 String to = companyEntity.getOwnerEmail();
                 String subject = "New user registration";
-                String body = "Hi, \n thanks for choosing to work with us! \n Here are your credentials: " + ownerUsername +"\n password: "+ password;
+                String body = "Hi, \n thanks for choosing to work with us! \n Here are your credentials: " + ownerEmail +"\n password: "+ password;
                 EmailSender.sendEmail(to, subject, body);
             } catch (Exception e) {
                 throw new Exception("Credentials already used");
