@@ -7,6 +7,7 @@ import com.licenta.bustravel.model.enums.UserType;
 import com.licenta.bustravel.repositories.CompanyRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.CompanyService;
+import com.licenta.bustravel.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
     private final UserRepository userRepository;
+    private final UserService userService;
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -92,7 +94,7 @@ public class CompanyServiceImpl implements CompanyService {
                     .companyEntity(companyEntity)
                     .build();
                 owner.setPassword(passwordEncoder.encode(password));
-                userRepository.save(owner);
+                userService.add(owner);
                 String to = companyEntity.getOwnerEmail();
                 String subject = "New user registration";
                 String body = "Hi, \n thanks for choosing to work with us! \n Here are your credentials: " + ownerUsername +"\n password: "+ password;
