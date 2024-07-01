@@ -25,6 +25,7 @@ import com.licenta.bustravel.service.utils.PathSegment;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,12 @@ public class RouteServiceImpl implements RouteService {
     private final LinkRepository linkRepository;
     private final BookingRepository bookingRepository;
     private final BookingLinkRepository bookingLinkRepository;
+
+    private static final DateTimeFormatter formatterWithSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+    private static String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(formatterWithSeconds);
+    }
 
     public UserEntity validateUserType() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext()
@@ -270,11 +277,18 @@ public class RouteServiceImpl implements RouteService {
     @Override
     public void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception {
         validateUserType();
-        RouteEntity routeToRemove = routeRepository.findRoute(routeEntity.getStartDateTime(),
-            routeEntity.getEndDateTime(), routeEntity.getStartLocation(), routeEntity.getEndLocation());
+
+        LOGGER.info("Start location: " + routeEntity.getStartLocation());
+        LOGGER.info("End location: " + routeEntity.getEndLocation());
+
+        RouteEntity routeToRemove = routeRepository.findById(routeEntity.getId())
+            .orElse(null);
+
+
         if (routeToRemove == null) {
             throw new Exception("Route not found!");
         }
+
         List<LinkEntity> linksWithBookings = linkRepository.findAllByRoute(routeToRemove).stream()
             .filter(bookingLinkRepository::existsBookingLinkEntityByLink)
             .toList();

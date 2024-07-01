@@ -4,6 +4,7 @@ import com.licenta.bustravel.DTO.AddRouteDTO;
 import com.licenta.bustravel.DTO.LinkDTO;
 import com.licenta.bustravel.DTO.RemoveRoutesDTO;
 import com.licenta.bustravel.DTO.RouteDTO;
+import com.licenta.bustravel.DTO.RouteWithRecurrenceDTO;
 import com.licenta.bustravel.DTO.SearchResultDTO;
 import com.licenta.bustravel.DTO.mapper.LinkMapper;
 import com.licenta.bustravel.DTO.mapper.RouteMapper;
@@ -177,14 +178,14 @@ public class RouteController {
 
     //for admin
     @GetMapping()
-    public ResponseEntity<List<RouteDTO>> getAllRoutes(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<List<RouteWithRecurrenceDTO>> getAllRoutes(@RequestHeader("Authorization") String authorizationHeader) {
         try {
             String token = authorizationHeader.substring(7);
             if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .build();
             }
-            List<RouteDTO> result = RouteMapper.toDTOList(routeService.getAll());
+            List<RouteWithRecurrenceDTO> result = RouteMapper.toDTOListWithRecurrence(routeService.getAll());
             return ResponseEntity.ok(result);
         } catch (Exception ex) {
             return ResponseEntity.noContent()
