@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface RouteService {
-    void add(RouteEntity routeEntity, List<StopEntity> intermediateLocations, List<Integer> days, LocalDate date) throws Exception;
+    void add(RouteEntity routeEntity, List<StopEntity> intermediateLocations, List<Integer> days, String date) throws Exception;
     Optional<RouteEntity> getById(int id) throws Exception;
     void modify(RouteEntity routeEntity, List<StopEntity> intermediateLocations) throws Exception;
     void delete(RouteEntity routeEntity, Boolean removeAll) throws Exception;

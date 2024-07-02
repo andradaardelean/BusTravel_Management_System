@@ -65,8 +65,7 @@ public class RouteController {
                 .getRecurrenceType());
             LOGGER.info("Route and stops mapped");
             routeService.add(routeEntity, stopEntities, addRouteDTO.getRecurrenceDTO()
-                .getDays(), LocalDate.parse(addRouteDTO.getRecurrenceDTO().getEndDate(),
-                DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                .getDays(), addRouteDTO.getRecurrenceDTO().getEndDate());
             LOGGER.info("Route added successfully");
             return ResponseEntity.ok("Route added successfully!");
         } catch (Exception ex) {

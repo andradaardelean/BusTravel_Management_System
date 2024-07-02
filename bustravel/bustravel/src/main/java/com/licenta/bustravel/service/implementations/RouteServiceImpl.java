@@ -16,6 +16,7 @@ import com.licenta.bustravel.repositories.StopsRepository;
 import com.licenta.bustravel.repositories.UserRepository;
 import com.licenta.bustravel.service.RouteService;
 import com.licenta.bustravel.service.utils.AStar;
+import com.licenta.bustravel.service.utils.Dijkstra;
 import com.licenta.bustravel.service.utils.DistanceMatrix;
 import com.licenta.bustravel.service.utils.Graph;
 import com.licenta.bustravel.service.utils.Link;
@@ -146,7 +147,7 @@ public class RouteServiceImpl implements RouteService {
         return routes;
     }
 
-    public List<RouteEntity> generateRoutes(RouteEntity route, List<Integer> days, LocalDate endOfRecurrence) {
+    public List<RouteEntity> generateRoutes(RouteEntity route, List<Integer> days, String endOfRecurrence) {
         LocalDateTime startDate = route.getStartDateTime();
         LocalDateTime endDate = route.getEndDateTime();
         List<RouteEntity> routes = new ArrayList<>();
@@ -158,10 +159,12 @@ public class RouteServiceImpl implements RouteService {
             routes.add(route);
         } else if (recurrenceType == RecurrenceType.DAY) {
             LOGGER.info("Day recurrence");
-            routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate, endOfRecurrence));
+            routes.addAll(generateForDayReccurency(route, everyNo, startDate, endDate, LocalDate.parse(endOfRecurrence,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
         } else if (recurrenceType == RecurrenceType.WEEK) {
             LOGGER.info("Week recurrence");
-            routes.addAll(generateForWeekReccurency(route, days, everyNo, endOfRecurrence));
+            routes.addAll(generateForWeekReccurency(route, days, everyNo, LocalDate.parse(endOfRecurrence,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
         }
         return routes;
     }
@@ -226,7 +229,7 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
-    public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days, LocalDate endOfRecurrence) throws Exception {
+    public void add(RouteEntity route, List<StopEntity> stops, List<Integer> days, String endOfRecurrence) throws Exception {
         try {
             UserEntity user = validateUserType();
             route.setCompanyEntity(user.getCompanyEntity());
@@ -380,6 +383,8 @@ public class RouteServiceImpl implements RouteService {
         Map<List<LinkEntity>, String> allPathsStops = new HashMap<>();
         for (List<PathSegment> path : allPaths) {
             List<LinkEntity> links = new ArrayList<>();
+            int distance = 0;
+            int duration = 0;
             for (PathSegment pathSegment : path) { // Asigurăm parcurgerea până la penultimul nod pentru a evita
                 // erori de index
                 Node fromNode = pathSegment.getNode();
@@ -391,21 +396,17 @@ public class RouteServiceImpl implements RouteService {
                     if (linkEntity != null) {
                         links.add(linkEntity);
                     }
+                    distance += linkEntity.getDistance();
+                    duration += linkEntity.getDuration();
                 }
             }
 
-            String distanceText = "";
-            String durationText = "";
-            if (!links.isEmpty()) {
-                StopEntity firstStop = links.get(0)
-                    .getFromStop();
-                StopEntity lastStop = links.get(links.size() - 1)
-                    .getToStop();
-                Map<String, String> distanceMap = DistanceMatrix.parseData(
-                    DistanceMatrix.getData(firstStop.getLocation(), lastStop.getLocation()));
-                distanceText = distanceMap.get("distanceText");
-                durationText = distanceMap.get("durationText");
-            }
+            double totalDistanceInKm = distance / 1000.0;
+            int hours = duration / 3600;
+            int minutes = (duration % 3600) / 60;
+            String distanceText = String.format("%.2f km", totalDistanceInKm);
+            String durationText = String.format("%d hours %d minutes", hours, minutes);
+
 
             allPathsStops.put(links, distanceText + " " + durationText);
         }
@@ -449,7 +450,7 @@ public class RouteServiceImpl implements RouteService {
             if(Objects.equals(type, "ALL"))
                 allPaths = DepthFirstSearch.findAllPaths(graph, startNode, endNode);
             else if(Objects.equals(type, "SHORTEST"))
-                allPaths = AStar.calculateAllShortestPaths(graph, startNode, endNode);
+                allPaths = Dijkstra.calculateAllShortestPaths(graph, startNode, endNode);
         }
 
         return allPaths;
