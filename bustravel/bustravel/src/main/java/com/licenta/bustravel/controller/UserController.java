@@ -114,6 +114,30 @@ public class UserController {
         }
     }
 
+    @PostMapping("/createByAdmin")
+    public @ResponseBody ResponseEntity<?> createUserByAdmin(@RequestHeader("Authorization") String authorization,
+                                                             @RequestBody UserDTO userDTO) {
+        try {
+            String token = authorization.substring(7);
+            if (!oAuthService.isTokenValid(token))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Token is not valid!");
+            UserEntity user = UserEntity.builder()
+                .username(userDTO.getUsername())
+                .name(userDTO.getName())
+                .phone(userDTO.getPhone())
+                .email(userDTO.getEmail())
+                .userType(UserType.valueOf(userDTO.getUserType()))
+                .companyEntity(userDTO.getCompany() != null ? companyService.getByName(userDTO.getCompany()) : null)
+                .build();
+            userService.addUserByAdmin(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Create user by admin does not work. " + e.getMessage());
+        }
+        return ResponseEntity.ok("User created successfully!");
+    }
+
 
     @GetMapping("")
     public @ResponseBody ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String authorizationHeader) {

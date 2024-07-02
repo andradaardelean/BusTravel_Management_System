@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class RequestMapper {
     public static RequestDTO toRequestDTO(RequestEntity request) {
-        if(!request.getStatus().equals(RequestStatus.REJECTED)) {
+//        if(!request.getStatus().equals(RequestStatus.REJECTED)) {
             Map<String, String> requestDetails = RequestServiceImpl.stringToMap(request.getRequestDetails());
             CompanyEntity companyEntity = CompanyEntity.builder()
                 .name(requestDetails.get("name"))
@@ -28,15 +28,15 @@ public class RequestMapper {
                 .status(request.getStatus()
                     .toString())
                 .build();
-        }
+//        }
 
-        return RequestDTO.builder()
-            .id(request.getId())
-            .type(request.getType().toString())
-            .company(null)
-            .requestDetails(request.getRequestDetails())
-            .status(request.getStatus().toString())
-            .build();
+//        return RequestDTO.builder()
+//            .id(request.getId())
+//            .type(request.getType().toString())
+//            .company(null)
+//            .requestDetails(request.getRequestDetails())
+//            .status(request.getStatus().toString())
+//            .build();
     }
 
     public static RequestEntity toRequestEntity(RequestDTO request) {

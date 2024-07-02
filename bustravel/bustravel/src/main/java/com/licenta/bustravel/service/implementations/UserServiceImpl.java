@@ -40,6 +40,23 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Invalid data");
     }
 
+    @Override
+    public void addUserByAdmin(UserEntity user) throws Exception {
+        if (user.isValid(user.getPhone(), user.getEmail())) {
+            String username = CompanyServiceImpl.generateOwnerUsername(user.getEmail());
+            String password = CompanyServiceImpl.generatePassword();
+            String encodedPassword = passwordEncoder.encode(password);
+            user.setPassword(encodedPassword);
+            user.setUsername(username);
+            add(user);
+            String to = user.getEmail();
+            String subject = "New user registration";
+            String body = "Hi, \n thanks for choosing to work with us! \n Here are your credentials: " + user.getUsername() +"\n password: "+ password;
+            EmailSender.sendEmail(to, subject, body);
+        } else
+            throw new Exception("Invalid data");
+    }
+
     public static String saveToOAuth(UserEntity user) throws Exception {
         HttpResponse<JSONObject> response = Unirest.post("https://travel-management-system.eu.auth0.com/oauth/token")
             .header("content-type", "application/json")

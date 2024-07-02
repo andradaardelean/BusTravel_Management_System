@@ -69,7 +69,7 @@ public class CompanyServiceImpl implements CompanyService {
         return new String(chars);
     }
 
-    private static String generateOwnerUsername(String ownerEmail) {
+    static String generateOwnerUsername(String ownerEmail) {
         String usernameBase = ownerEmail.substring(0, ownerEmail.indexOf('@'));
         int maxLength = 14;
 
