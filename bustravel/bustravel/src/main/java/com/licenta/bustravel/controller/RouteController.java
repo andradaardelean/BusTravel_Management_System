@@ -134,8 +134,7 @@ public class RouteController {
 
             return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Search failed! " + ex.getMessage());
+            return new ResponseEntity<>(List.of(), HttpStatus.NO_CONTENT);
         }
     }
 
