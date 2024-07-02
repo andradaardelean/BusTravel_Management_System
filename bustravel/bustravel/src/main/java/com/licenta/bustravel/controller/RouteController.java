@@ -52,21 +52,17 @@ public class RouteController {
     public ResponseEntity<?> addRoute(@RequestHeader("Authorization") String authorizationHeader,
                                       @RequestBody AddRouteDTO addRouteDTO) {
         try {
-            LOGGER.info("Add route request received");
             String token = authorizationHeader.substring(7);
             if (!oAuthService.isTokenValid(token)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Token invalid!");
             }
-            LOGGER.info("Token is valid");
             List<StopEntity> stopEntities = StopMapper.toModelList(addRouteDTO.getStopsDTOList());
             RouteEntity routeEntity = RouteMapper.toModel(addRouteDTO.getRoutesDTO(), addRouteDTO.getRecurrenceDTO()
                 .getEveryNo(), addRouteDTO.getRecurrenceDTO()
                 .getRecurrenceType());
-            LOGGER.info("Route and stops mapped");
             routeService.add(routeEntity, stopEntities, addRouteDTO.getRecurrenceDTO()
                 .getDays(), addRouteDTO.getRecurrenceDTO().getEndDate());
-            LOGGER.info("Route added successfully");
             return ResponseEntity.ok("Route added successfully!");
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
